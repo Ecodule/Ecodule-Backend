@@ -15,6 +15,8 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 # 5. アプリケーションのソースコードをコンテナにコピー
 COPY . /app
 
+WORKDIR /app/src
+
 # 6. コンテナ起動時にこのコマンドを実行する
 #    Uvicornサーバーを起動し、外部からのアクセスを許可する
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
