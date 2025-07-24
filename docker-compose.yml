@@ -1,0 +1,14 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # サービス名を「app」とする
+  app:
+    # 現在のディレクトリにあるDockerfileを元にコンテナをビルドする
+    build: .
+    # コンテナの80番ポートを、PCの8000番ポートに接続する
+    ports:
+      - "8000:80"
+    # ローカルのファイルをコンテナに同期させ、コード変更を即時反映する
+    volumes:
+      - .:/app
