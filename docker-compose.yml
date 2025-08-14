@@ -1,14 +1,29 @@
-# docker-compose.yml
-version: '3.8'
-
 services:
-  # サービス名を「app」とする
+  # Python APIサーバーの定義（前回作成したもの）
   app:
-    # 現在のディレクトリにあるDockerfileを元にコンテナをビルドする
     build: .
-    # コンテナの80番ポートを、PCの8000番ポートに接続する
     ports:
       - "8000:80"
-    # ローカルのファイルをコンテナに同期させ、コード変更を即時反映する
     volumes:
-      - .:/app
+      - ./src:/app/src
+    # DBが起動してからAPIサーバーが起動するように設定
+    depends_on:
+      - db
+    # 環境変数でデータベース接続情報をアプリに渡す
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+
+  # PostgreSQLデータベースの定義
+  db:
+    image: postgres:15-alpine  # PostgreSQLのDockerイメージ
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=mydatabase
+    ports:
+      - "5432:5432"  # PCの5432ポートに接続
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:
