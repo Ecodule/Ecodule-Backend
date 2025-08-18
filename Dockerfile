@@ -17,6 +17,13 @@ COPY . /app
 
 WORKDIR /app/src
 
+# entrypoint.shをコンテナにコピー
+COPY ./entrypoint.sh /app/entrypoint.sh
+# 実行権限を付与
+RUN chmod +x /app/entrypoint.sh
+# コンテナ起動時にこのスクリプトを実行するように設定
+ENTRYPOINT ["/app/entrypoint.sh"]
+
 # 6. コンテナ起動時にこのコマンドを実行する
 #    Uvicornサーバーを起動し、外部からのアクセスを許可する
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
