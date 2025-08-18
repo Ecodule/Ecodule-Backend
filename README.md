@@ -54,3 +54,7 @@ your-project-name/
 ├── pyproject.toml            # [推奨] 依存パッケージ管理 (or requirements.txt)
 └── README.md                 # プロジェクトの説明書
 ```
+
+## docker環境下に適応したモジュールインポート
+- モジュールをインポートする際のパスはsrc以下から記述してください
+- 例: `from db.session`, `from models.user`
