@@ -14,3 +14,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # ORMモデルのベースクラス
 Base = declarative_base()
+
+def get_db():
+    """データベースセッションを取得するための依存関係"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
