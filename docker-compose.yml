@@ -12,6 +12,7 @@ services:
     # 環境変数でデータベース接続情報をアプリに渡す
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+      - PYTHONPATH=/app/src  # srcディレクトリをPYTHONPATHに追加
 
   # PostgreSQLデータベースの定義
   db:

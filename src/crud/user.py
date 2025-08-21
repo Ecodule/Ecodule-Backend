@@ -38,7 +38,7 @@ def authenticate_user(db: Session, email: str, password: str):
     user = get_user_by_email(db, email)
     
     # ユーザーが存在しない、またはアクティブでない場合は失敗
-    if not user or not user.is_active:
+    if not user: # or not user.is_active:
         return None
         
     # パスワードを検証

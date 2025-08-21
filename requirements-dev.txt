@@ -1,0 +1,8 @@
+# requirements-dev.txt
+
+# requirements.txtの内容をすべて読み込む
+-r requirements.txt
+
+# 開発・テスト用のライブラリ
+pytest
+httpx
