@@ -17,8 +17,6 @@ COPY . /app
 
 WORKDIR /app/src
 
-# entrypoint.shをコンテナにコピー
-COPY ./entrypoint.sh /app/entrypoint.sh
 # 実行権限を付与
 RUN chmod +x /app/entrypoint.sh
 # コンテナ起動時にこのスクリプトを実行するように設定
