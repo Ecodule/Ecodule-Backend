@@ -3,6 +3,15 @@
 ## 環境構築
 - .envファイルの作成
 
+## テスト実行
+```
+docker-compose up -d --build
+
+docker-compose exec app pip install -r ../requirements-dev.txt
+
+docker-compose exec app pytest
+```
+
 ## ディレクトリ構成（予定）
 ```
 your-project-name/
