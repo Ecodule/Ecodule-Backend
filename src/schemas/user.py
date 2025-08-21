@@ -1,6 +1,6 @@
 import string
 import uuid
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 # Token
 class Token(BaseModel):
@@ -34,10 +34,8 @@ class UserCreate(BaseModel):
 
 # User response model
 class UserResponse(BaseModel):
+  model_config = ConfigDict(from_attributes=True)
+  
   id: uuid.UUID
   email: EmailStr
   is_active: bool
-
-  class Config:
-    # config to convert SQLAlchemy models into Pydantic models
-    from_attributes = True
