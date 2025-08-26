@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 import auth
+import core.tokens
 import crud.user, schemas.user
 from db.session import get_db
 
@@ -44,3 +45,30 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 @router.get("/users/me", response_model=schemas.user.UserResponse, tags=["users"])
 def read_users_me(current_user: schemas.user.UserResponse = Depends(auth.get_current_user)):
     return current_user
+
+@router.get("/verify-email/", tags=["auth"])
+def verify_email(token: str, db: Session = Depends(get_db)):
+    # test the email verification token and activate the user account
+    email = core.tokens.verify_verification_token(token)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="無効なトークンまたは有効期限切れです。"
+        )
+
+    user = crud.get_user_by_email(db, email=email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="ユーザーが見つかりません"
+        )
+    
+    if user.is_active:
+        return {"message": "このアカウントは既に有効化されています"}
+    
+    # ユーザーを有効化
+    user.is_active = True
+    db.add(user)
+    db.commit()
+    
+    return {"message": "メールアドレスの有効化が成功しました"}
