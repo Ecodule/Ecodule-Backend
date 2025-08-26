@@ -10,3 +10,5 @@ pydantic
 pydantic[email]
 python-dotenv
 python-multipart
+itsdangerous
+fastapi-mail
