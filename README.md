@@ -2,6 +2,10 @@
 
 ## 環境構築
 - .envファイルの作成
+``` envファイル作成例
+JWT_SECRET_KEY="任意の文字列"
+EMAIL_VERIFICATION_SECRET_KEY="任意の文字列"
+```
 
 ## テスト実行
 ```
