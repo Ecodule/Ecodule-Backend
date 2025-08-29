@@ -6,7 +6,7 @@ import crud, schemas
 
 def test_password_hashing(db_session: Session):
     # パスワードのハッシュ化と検証が正しく機能するかをテスト
-    from auth import verify_password, get_password_hash
+    from core.auth import verify_password, get_password_hash
 
     password = "testpassword123!"
     hashed_password = get_password_hash(password)
