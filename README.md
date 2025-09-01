@@ -5,6 +5,7 @@
 ``` envファイル作成例
 JWT_SECRET_KEY="任意の文字列"
 EMAIL_VERIFICATION_SECRET_KEY="任意の文字列"
+ANDROID_CLIENT_ID="GCPで取得したアンドロイドクライアントID" # 開発環境ではウェブ用のCLIENT_IDを使用
 ```
 
 ```
