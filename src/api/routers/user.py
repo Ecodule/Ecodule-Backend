@@ -33,59 +33,6 @@ def create_new_user(user: schemas.user.UserCreate, db: Session = Depends(get_db)
 
     return created_user
 
-# authentication and token generation
-@router.post("/auth/login/", response_model=schemas.user.Token,tags=["auth"])
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # verify user credentials and generate token
-    user = crud.user.authenticate_user(db, email=form_data.username, password=form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="メールアドレスまたはパスワードが正しくありません",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
-    # existing user but not active
-    if not user.is_active:
-        core.email_verification.send_message(user.email)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="メールアドレスが確認されていません。確認メールを再送信しました。",
-        )
-    
-    # create access token
-    access_token = auth.create_access_token(
-        data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
-
 @router.get("/users/me", response_model=schemas.user.UserResponse, tags=["users"])
 def read_users_me(current_user: schemas.user.UserResponse = Depends(auth.get_current_user)):
     return current_user
-
-@router.get("/verify-email/", tags=["auth"])
-def verify_email(token: str, db: Session = Depends(get_db)):
-    # test the email verification token and activate the user account
-    email = core.email_verification.verify_verification_token(token)
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="無効なトークンまたは有効期限切れです。"
-        )
-
-    user = crud.user.get_user_by_email(db, email=email)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="ユーザーが見つかりません"
-        )
-    
-    if user.is_active:
-        return {"message": "このアカウントは既に有効化されています"}
-    
-    # ユーザーを有効化
-    user.is_active = True
-    db.add(user)
-    db.commit()
-    
-    return {"message": "メールアドレスの有効化が成功しました"}
