@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-import models.user, auth # 先ほど作成したauth.py
+import models.user, core.auth as auth # 先ほど作成したauth.py
 
 def get_user_by_email(db: Session, email: str):
     # get user by email with SQLAlchemy ORM

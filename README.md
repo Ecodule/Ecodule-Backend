@@ -2,6 +2,17 @@
 
 ## 環境構築
 - .envファイルの作成
+``` envファイル作成例
+JWT_SECRET_KEY="任意の文字列"
+EMAIL_VERIFICATION_SECRET_KEY="任意の文字列"
+```
+
+```
+python -c 'import secrets; print(secrets.token_hex(32))'
+```
+
+- google apiのcredentials.jsonをルートに保存
+- google apiのtoken.jsonをsrc配下に保存
 
 ## テスト実行
 ```

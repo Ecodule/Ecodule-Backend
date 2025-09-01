@@ -5,4 +5,5 @@
 
 # 開発・テスト用のライブラリ
 pytest
+pytest-mock
 httpx

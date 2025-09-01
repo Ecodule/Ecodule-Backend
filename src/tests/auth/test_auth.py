@@ -1,35 +1,43 @@
 # tests/test_auth.py
 
 from fastapi import status
+from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
-import crud, schemas
+import crud.user, schemas.user, core.email_verification
+
+TEST_USER_EMAIL = "test@example.com"
+TEST_USER_PASSWORD = "testpassword123"
 
 def test_password_hashing(db_session: Session):
     # パスワードのハッシュ化と検証が正しく機能するかをテスト
-    from auth import verify_password, get_password_hash
+    from core.auth import verify_password, get_password_hash
 
-    password = "testpassword123!"
-    hashed_password = get_password_hash(password)
+    hashed_password = get_password_hash(TEST_USER_PASSWORD)
 
-    assert hashed_password != password # ハッシュ化されているか
-    assert verify_password(password, hashed_password) # 検証が成功するか
+    assert hashed_password != TEST_USER_PASSWORD # ハッシュ化されているか
+    assert verify_password(TEST_USER_PASSWORD, hashed_password) # 検証が成功するか
     assert not verify_password("wrongpassword", hashed_password) # 間違ったパスワードで失敗するか
 
 def test_user_authentication(client, db_session: Session):
     # ユーザー認証とトークン発行のエンドポイントをテスト
     # テスト用のユーザーを作成
-    test_email = "test@example.com"
-    test_password = "testpassword123!"
-    user_in = {"email": test_email, "password": test_password}
-    login_data = {"username": test_email, "password": test_password}
+    user_in = {"email": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD}
+    login_data = {"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD}
     response_user_create = client.post("/users/create", json=user_in)
     
     # 1. ユーザー作成が成功することを確認
     assert response_user_create.status_code == status.HTTP_201_CREATED
 
     # 2. 作成したユーザーがデータベースに存在することを確認
-    user_from_email = crud.user.get_user_by_email(db_session, email=test_email)
+    user_from_email = crud.user.get_user_by_email(db_session, email=TEST_USER_EMAIL)
     assert user_from_email is not None
+
+    # メールアドレスの検証トークンを生成
+    token = core.email_verification.generate_verification_token(TEST_USER_EMAIL)
+    assert token is not None
+    
+    response = client.get(f"/verify-email/?token={token}")
+    assert response.status_code == status.HTTP_200_OK
 
     # ログインしてトークンを取得
     response = client.post("/auth/login", data=login_data)
@@ -41,7 +49,7 @@ def test_user_authentication(client, db_session: Session):
     assert token["token_type"] == "bearer"
 
     # 間違ったパスワードでログインを試みる
-    wrong_login_data = {"username": test_email, "password": "wrongpassword"}
+    wrong_login_data = {"username": TEST_USER_EMAIL, "password": "wrongpassword"}
     response = client.post("/auth/login", data=wrong_login_data)
     
     # 4. 間違ったパスワードでログインが失敗することを確認
@@ -50,12 +58,15 @@ def test_user_authentication(client, db_session: Session):
 def test_get_current_user(client, db_session: Session):
     # 保護されたエンドポイントへのアクセスをテスト
     # 1. テスト用のユーザーとトークンを準備
-    test_email = "test_me@example.com"
-    test_password = "passwordforme!"
-    user_in = schemas.user.UserCreate(email=test_email, password=test_password)
+    user_in = schemas.user.UserCreate(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD)
     crud.user.create_user(db_session, email=user_in.email, password=user_in.password)
-    
-    login_data = {"username": test_email, "password": test_password}
+
+    # メールアドレスの検証トークンを生成
+    token = core.email_verification.generate_verification_token(TEST_USER_EMAIL)
+    response = client.get(f"/verify-email/?token={token}")
+    assert response.status_code == status.HTTP_200_OK
+
+    login_data = {"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD}
     response = client.post("/auth/login", data=login_data)
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -65,7 +76,7 @@ def test_get_current_user(client, db_session: Session):
     
     assert response.status_code == status.HTTP_200_OK
     current_user = response.json()
-    assert current_user["email"] == test_email
+    assert current_user["email"] == TEST_USER_EMAIL
 
     # 3. 不正なトークンでアクセスに失敗
     wrong_headers = {"Authorization": "Bearer wrongtoken"}
