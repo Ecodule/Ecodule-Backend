@@ -30,6 +30,12 @@ docker-compose exec app pip install -r ../requirements-dev.txt
 docker-compose exec app pytest
 ```
 
+## マイグレーションコマンド
+```
+docker-compose exec app alembic revision -m "マイグレーションの名前付け"
+docker-compose exec app alembic upgrade head # 実行
+```
+
 ## ディレクトリ構成（予定）
 ```
 your-project-name/
