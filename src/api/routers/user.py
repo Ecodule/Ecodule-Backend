@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 import core.auth as auth
-import core.tokens
+import core.email_verification
 import crud.user, schemas.user
 from db.session import get_db
 
@@ -17,11 +17,20 @@ router = APIRouter()
 def create_new_user(user: schemas.user.UserCreate, db: Session = Depends(get_db)):
     # check if the user already exists
     db_user = crud.user.get_user_by_email(db=db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="このメールアドレスは既に使用されています。")
+    if db_user and not db_user.is_active:
+        # 再度メールアドレス確認用のメールを送信
+        core.email_verification.send_message(user.email)
+        raise HTTPException(status_code=400, detail="このメールアドレスを持つユーザーは既に存在します。再度確認メールを送信しました。")
+
+    if db_user and db_user.is_active:
+        # ユーザーが既に存在し、有効化されている場合
+        raise HTTPException(status_code=400, detail="このメールアドレスを持つユーザーは既に存在します。")
 
     # create new user
     created_user = crud.user.create_user(db=db, email=user.email, password=user.password)
+
+    core.email_verification.send_message(user.email)
+
     return created_user
 
 # authentication and token generation
@@ -34,6 +43,14 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="メールアドレスまたはパスワードが正しくありません",
             headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    # existing user but not active
+    if not user.is_active:
+        core.email_verification.send_message(user.email)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="メールアドレスが確認されていません。確認メールを再送信しました。",
         )
     
     # create access token
@@ -49,14 +66,14 @@ def read_users_me(current_user: schemas.user.UserResponse = Depends(auth.get_cur
 @router.get("/verify-email/", tags=["auth"])
 def verify_email(token: str, db: Session = Depends(get_db)):
     # test the email verification token and activate the user account
-    email = core.tokens.verify_verification_token(token)
+    email = core.email_verification.verify_verification_token(token)
     if not email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="無効なトークンまたは有効期限切れです。"
         )
 
-    user = crud.get_user_by_email(db, email=email)
+    user = crud.user.get_user_by_email(db, email=email)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

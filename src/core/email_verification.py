@@ -1,3 +1,4 @@
+from config import settings
 import os.path
 import base64
 from email.mime.text import MIMEText
@@ -7,8 +8,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
-# --- 設定項目 ---
+from itsdangerous import URLSafeTimedSerializer
 
 # このスコープは、メールの送信権限を要求することを意味します。
 # 変更する場合は、token.jsonを削除してください。
@@ -46,10 +46,22 @@ def get_gmail_service():
     return build("gmail", "v1", credentials=creds)
 
 
-def create_message(sender, to, subject, message_text):
+def create_message(sender, to, subject, verification_url):
     """
     MIMETextオブジェクトを作成し、Base64エンコードします。
     """
+
+    # メール本文（HTML形式）
+    message_text = f"""
+    <html><body>
+        <h2>ご登録ありがとうございます！</h2>
+        <p>アカウントを有効にするには、以下のボタンをクリックしてください。</p>
+        <a href="{verification_url}" style="background-color: #4CAF50; color: white; padding: 14px 25px; text-align: center; text-decoration: none; display: inline-block; border-radius: 8px;">
+           メールアドレスを認証する
+        </a>
+    </body></html>
+    """
+
     message = MIMEText(message_text, "html") # HTML形式で送信
     message["to"] = to
     message["from"] = f"{SENDER_NAME} <{sender}>"
@@ -60,42 +72,48 @@ def create_message(sender, to, subject, message_text):
     return {"raw": raw_message}
 
 
-def send_message(service, user_id, message):
+def send_message(user_email: str):
     """
     Gmail APIを使ってメールを送信します。
     """
+    # Gmail APIサービスを取得(準備)
+    service = get_gmail_service()
+
+    subject = "メールアドレスの確認"
+    verification_token = generate_verification_token(user_email)
+
+    # 確認用URLを生成、あとで環境変数にする
+    verification_url = f"http://localhost:8000/verify-email/?token={verification_token}"
+    message = create_message(SENDER_EMAIL, user_email, subject, verification_url)
+
     try:
         message = (
-            service.users().messages().send(userId=user_id, body=message).execute()
+            # meは認証済みユーザーであることを示す。
+            service.users().messages().send(userId="me", body=message).execute()
         )
         print(f"メッセージが送信されました。Message ID: {message['id']}")
         return message
     except HttpError as error:
         print(f"エラーが発生しました: {error}")
         return None
+    
+# -----------------------------------
 
-# --- メインの処理 ---
-if __name__ == "__main__":
-    # 1. Gmailサービスを取得
-    service = get_gmail_service()
-    
-    # 2. 送信するメールの内容を作成
-    recipient_email = "miyazato2929@gmail.com" # 宛先
-    verification_url = "https://example.com/verify?token=dummy-token" # ダミーのURL
-    
-    subject = f"【{SENDER_NAME}】メールアドレスの確認"
-    body = f"""
-    <html><body>
-        <h2>ご登録ありがとうございます！</h2>
-        <p>アカウントを有効にするには、以下のボタンをクリックしてください。</p>
-        <a href="{verification_url}" style="background-color: #4CAF50; color: white; padding: 14px 25px; text-align: center; text-decoration: none; display: inline-block; border-radius: 8px;">
-           メールアドレスを認証する
-        </a>
-    </body></html>
-    """
-    
-    # 3. メッセージオブジェクトを作成
-    message_to_send = create_message(SENDER_EMAIL, recipient_email, subject, body)
-    
-    # 4. メールを送信 (user_id='me'は認証済みユーザー自身を指します)
-    send_message(service, "me", message_to_send)
+def generate_verification_token(email: str) -> str:
+  # メールアドレス確認用のセキュアなトークンを生成する
+  serializer = URLSafeTimedSerializer(settings.EMAIL_VERIFICATION_SECRET_KEY)
+  return serializer.dumps(email, salt='email-verification-salt')
+
+def verify_verification_token(token: str) -> str | None:
+  # メールアドレス確認トークンを検証し、メールアドレスを返す
+  serializer = URLSafeTimedSerializer(settings.EMAIL_VERIFICATION_SECRET_KEY)
+  try:
+    email = serializer.loads(
+      token,
+      salt='email-verification-salt',
+      max_age=3600 # トークンの有効期限を秒で指定
+    )
+    return email
+  except Exception:
+    return None
+  
