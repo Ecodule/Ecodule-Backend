@@ -32,7 +32,7 @@ docker-compose exec app pytest
 
 ## マイグレーションコマンド
 ```
-docker-compose exec app alembic revision -m "マイグレーションの名前付け"
+docker-compose exec app alembic revision --autogenerate -m "マイグレーションの名前付け"
 docker-compose exec app alembic upgrade head # 実行
 ```
 
