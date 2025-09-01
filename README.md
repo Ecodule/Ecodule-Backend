@@ -12,7 +12,14 @@ python -c 'import secrets; print(secrets.token_hex(32))'
 ```
 
 - google apiのcredentials.jsonをルートに保存
-- google apiのtoken.jsonをsrc配下に保存
+    - ecoduleのgoogle cloud platformでダウンロード
+
+```
+# google apiのtoken.jsonをsrc配下に保存
+# ローカルで実行
+Ecodule-Backend\src> python -m pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+Ecodule-Backend\src> python -m core.email_verification
+```
 
 ## テスト実行
 ```
