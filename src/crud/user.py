@@ -35,7 +35,10 @@ def create_user(db: Session, email: str, password: str = None, google_id: str = 
         new_credential = models.user.UserCredential(
             google_id=google_id,
             user=new_user
-        ) 
+        )
+
+    if not password and not google_id:
+        return None
 
     db.add(new_user)
     db.add(new_credential)
