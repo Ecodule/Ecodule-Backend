@@ -1,16 +1,24 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from dotenv import load_dotenv
 
 import core.auth as auth
 import core.email_verification
 import crud.user, schemas.user
 from db.session import get_db
 
+load_dotenv()
+
 # define the rule to get token from the request
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 router = APIRouter()
+
+ANDROID_CLIENT_ID = os.getenv("ANDROID_CLIENT_ID")
 
 # endpoint to create a new user
 @router.post("/users/create", response_model=schemas.user.UserResponse, status_code=status.HTTP_201_CREATED, tags=["users"])
@@ -46,7 +54,7 @@ def link_google_account(
     """
     ログイン中のユーザーにGoogleアカウントを紐付ける
     """
-    # 🛡️ 1. Google IDトークンを検証
+    # 1. Google IDトークンを検証、これはおまじない
     try:
         idinfo = id_token.verify_oauth2_token(
             google_token, requests.Request(), ANDROID_CLIENT_ID
@@ -56,7 +64,7 @@ def link_google_account(
     except ValueError:
         raise HTTPException(status_code=401, detail="無効なGoogleトークンです。")
 
-    # 🛡️ 2. 安全性チェック
+    # 2. 安全性チェック
     # ログイン中ユーザーのemailとGoogleアカウントのemailが一致するか確認
     if current_user.email != google_email:
         raise HTTPException(
