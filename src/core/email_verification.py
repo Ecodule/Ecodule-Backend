@@ -116,4 +116,6 @@ def verify_verification_token(token: str) -> str | None:
     return email
   except Exception:
     return None
-  
+
+if __name__ == "__main__":
+    get_gmail_service()

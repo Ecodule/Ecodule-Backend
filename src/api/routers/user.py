@@ -37,7 +37,7 @@ def create_new_user(user: schemas.user.UserCreate, db: Session = Depends(get_db)
 def read_users_me(current_user: schemas.user.UserResponse = Depends(auth.get_current_user)):
     return current_user
 
-@router.patch("/users/me/link-google", response_model=schemas.UserResponse, tags=["users"])
+@router.patch("/users/me/link-google", response_model=schemas.user.UserResponse, tags=["users"])
 def link_google_account(
     db: Session = Depends(get_db),
     current_user: schemas.user.UserResponse = Depends(auth.get_current_user), # 独自トークンで認証
