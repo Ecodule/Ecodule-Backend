@@ -95,3 +95,30 @@ your-project-name/
 ## docker環境下に適応したモジュールインポート
 - モジュールをインポートする際のパスはsrc以下から記述してください
 - 例: `from db.session`, `from models.user`
+
+## oauthテスト
+```
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Sign-In Test</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <h1>Google IDトークン取得テスト</h1>
+    <p>ログイン後、ブラウザの開発者コンソールにIDトークンが出力されます。</p>
+
+    <div id="g_id_onload"
+         data-client_id="YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <script>
+      function handleCredentialResponse(response) {
+        console.log("Encoded JWT ID token: " + response.credential);
+      }
+    </script>
+</body>
+</html>
+```
