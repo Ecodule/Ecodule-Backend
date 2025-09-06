@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import string
 import uuid
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
@@ -39,3 +41,12 @@ class UserResponse(BaseModel):
   id: uuid.UUID
   email: EmailStr
   is_active: bool
+  credential: UserCredentialResponse
+
+class UserCredentialResponse(BaseModel):
+  model_config = ConfigDict(from_attributes=True)
+  
+  id: uuid.UUID
+  user_id: uuid.UUID
+  hashed_password: str | None = None
+  google_id: str | None = None

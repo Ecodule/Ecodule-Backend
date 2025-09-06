@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, UUID
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, UUID, CheckConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -24,7 +24,18 @@ class UserCredential(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    hashed_password = Column(String, nullable=False)
+
+    # 認証情報の保存
+    hashed_password = Column(String, nullable=True)
+    google_id = Column(String, unique=True, nullable=True)
+
+    # パスワードかgoogle_idどちらかが保存されている必要がある
+    __table_args__ = (
+        CheckConstraint(
+            'hashed_password IS NOT NULL OR google_id IS NOT NULL',
+            name="ck_user_auth_method"
+        ),
+    )
 
     # UserCredentialからUserを逆引きできるように設定
     user = relationship("User", back_populates="credential")

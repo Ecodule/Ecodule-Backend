@@ -36,7 +36,7 @@ def test_user_authentication(client, db_session: Session):
     token = core.email_verification.generate_verification_token(TEST_USER_EMAIL)
     assert token is not None
     
-    response = client.get(f"/verify-email/?token={token}")
+    response = client.get(f"/auth/verify-email/?token={token}")
     assert response.status_code == status.HTTP_200_OK
 
     # ログインしてトークンを取得
@@ -63,7 +63,7 @@ def test_get_current_user(client, db_session: Session):
 
     # メールアドレスの検証トークンを生成
     token = core.email_verification.generate_verification_token(TEST_USER_EMAIL)
-    response = client.get(f"/verify-email/?token={token}")
+    response = client.get(f"/auth/verify-email/?token={token}")
     assert response.status_code == status.HTTP_200_OK
 
     login_data = {"username": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD}

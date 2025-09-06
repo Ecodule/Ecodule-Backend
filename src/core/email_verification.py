@@ -83,7 +83,7 @@ def send_message(user_email: str):
     verification_token = generate_verification_token(user_email)
 
     # 確認用URLを生成、あとで環境変数にする
-    verification_url = f"http://localhost:8000/verify-email/?token={verification_token}"
+    verification_url = f"http://localhost:8000/auth/verify-email/?token={verification_token}"
     message = create_message(SENDER_EMAIL, user_email, subject, verification_url)
 
     try:
@@ -116,4 +116,6 @@ def verify_verification_token(token: str) -> str | None:
     return email
   except Exception:
     return None
-  
+
+if __name__ == "__main__":
+    get_gmail_service()

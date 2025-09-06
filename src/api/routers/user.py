@@ -1,16 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from dotenv import load_dotenv
 
 import core.auth as auth
 import core.email_verification
 import crud.user, schemas.user
 from db.session import get_db
 
+load_dotenv()
+
 # define the rule to get token from the request
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 router = APIRouter()
+
+ANDROID_CLIENT_ID = os.getenv("ANDROID_CLIENT_ID")
 
 # endpoint to create a new user
 @router.post("/users/create", response_model=schemas.user.UserResponse, status_code=status.HTTP_201_CREATED, tags=["users"])
@@ -33,59 +41,50 @@ def create_new_user(user: schemas.user.UserCreate, db: Session = Depends(get_db)
 
     return created_user
 
-# authentication and token generation
-@router.post("/auth/login/", response_model=schemas.user.Token,tags=["auth"])
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # verify user credentials and generate token
-    user = crud.user.authenticate_user(db, email=form_data.username, password=form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="メールアドレスまたはパスワードが正しくありません",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
-    # existing user but not active
-    if not user.is_active:
-        core.email_verification.send_message(user.email)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="メールアドレスが確認されていません。確認メールを再送信しました。",
-        )
-    
-    # create access token
-    access_token = auth.create_access_token(
-        data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
-
 @router.get("/users/me", response_model=schemas.user.UserResponse, tags=["users"])
 def read_users_me(current_user: schemas.user.UserResponse = Depends(auth.get_current_user)):
     return current_user
 
-@router.get("/verify-email/", tags=["auth"])
-def verify_email(token: str, db: Session = Depends(get_db)):
-    # test the email verification token and activate the user account
-    email = core.email_verification.verify_verification_token(token)
-    if not email:
+@router.patch("/users/me/link-google", response_model=schemas.user.UserResponse, tags=["users"])
+def link_google_account(
+    db: Session = Depends(get_db),
+    current_user: schemas.user.UserResponse = Depends(auth.get_current_user), # 独自トークンで認証
+    google_token: str = Body(..., embed=True, alias="token")
+):
+    """
+    ログイン中のユーザーにGoogleアカウントを紐付ける
+    """
+    # 1. Google IDトークンを検証、これはおまじない
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            google_token, requests.Request(), ANDROID_CLIENT_ID
+        )
+        google_user_id = idinfo["sub"]
+        google_email = idinfo["email"]
+    except ValueError:
+        raise HTTPException(status_code=401, detail="無効なGoogleトークンです。")
+
+    # 2. 安全性チェック
+    # ログイン中ユーザーのemailとGoogleアカウントのemailが一致するか確認
+    if current_user.email != google_email:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="無効なトークンまたは有効期限切れです。"
+            status_code=400,
+            detail="アカウントのメールアドレスとGoogleアカウントのメールアドレスが一致しません。"
         )
 
-    user = crud.user.get_user_by_email(db, email=email)
-    if not user:
+    # このGoogleアカウントが、他のユーザーに既に紐付けられていないか確認
+    existing_google_user = crud.user.get_user_by_google_id(db, google_id=google_user_id)
+    if existing_google_user and existing_google_user.id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="ユーザーが見つかりません"
+            status_code=409, # Conflict
+            detail="このGoogleアカウントは既に他のアカウントに連携されています。"
         )
     
-    if user.is_active:
-        return {"message": "このアカウントは既に有効化されています"}
-    
-    # ユーザーを有効化
-    user.is_active = True
-    db.add(user)
+    # 3. ユーザー情報を更新
+    current_user.credential.google_id = google_user_id
+
+    db.add(current_user)
     db.commit()
+    db.refresh(current_user)
     
-    return {"message": "メールアドレスの有効化が成功しました"}
+    return current_user
