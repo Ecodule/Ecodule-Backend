@@ -21,7 +21,7 @@ router = APIRouter()
 ANDROID_CLIENT_ID = os.getenv("ANDROID_CLIENT_ID")
 
 # endpoint to create a new user
-@router.post("/users/create", response_model=schemas.user.UserResponse, status_code=status.HTTP_201_CREATED, tags=["users"])
+@router.post("/users/create", status_code=status.HTTP_201_CREATED, tags=["users"])
 def create_new_user(user: schemas.user.UserCreate, db: Session = Depends(get_db)):
     # check if the user already exists
     db_user = crud.user.get_user_by_email(db=db, email=user.email)
@@ -39,7 +39,7 @@ def create_new_user(user: schemas.user.UserCreate, db: Session = Depends(get_db)
 
     core.email_verification.send_message(user.email)
 
-    return created_user
+    return [created_user, {"message": "ユーザーが作成されました。確認メールを送信しました。"}]
 
 @router.get("/users/me", response_model=schemas.user.UserResponse, tags=["users"])
 def read_users_me(current_user: schemas.user.UserResponse = Depends(auth.get_current_user)):
