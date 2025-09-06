@@ -5,9 +5,15 @@ import uuid
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 # Token
-class Token(BaseModel):
+class TokenResponse(BaseModel):
+  model_config = ConfigDict(from_attributes=True)
+  
+  id: uuid.UUID
+  is_active: bool
   access_token: str
-  token_type: str
+  expires_in: int
+  refresh_token: str
+  token_type: str = "bearer"
 
 # user
 class UserCreate(BaseModel):
@@ -50,14 +56,4 @@ class UserCredentialResponse(BaseModel):
   user_id: uuid.UUID
   hashed_password: str | None = None
   google_id: str | None = None
-
-class UserTokenResponse(BaseModel):
-  model_config = ConfigDict(from_attributes=True)
-  
-  id: uuid.UUID
-  is_active: bool
-  access_token: str
-  expires_in: int
-  refresh_token: str
-  token_type: str = "bearer"
   

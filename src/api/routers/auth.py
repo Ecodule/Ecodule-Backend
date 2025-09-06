@@ -6,10 +6,11 @@ from sqlalchemy.orm import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-import core.auth, core.token, core.security
-import core.email_verification
-import crud.user, crud.refresh_token
-import schemas.user
+from core.token import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from core.email_verification import send_message, verify_verification_token
+from crud.user import authenticate_user, get_user_by_email, get_user_by_google_id, create_user as crud_create_user
+from crud.refresh_token import get_user_by_refresh_token
+from schemas.user import TokenResponse
 from db.session import get_db
 
 load_dotenv()
@@ -19,10 +20,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 router = APIRouter()
 
 # authentication and token generation
-@router.post("/auth/login/", response_model=schemas.user.Token, tags=["auth"])
+@router.post("/auth/login/", response_model=TokenResponse, tags=["auth"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # verify user credentials and generate token
-    user = crud.user.authenticate_user(db, email=form_data.username, password=form_data.password)
+    user = authenticate_user(db, email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -32,14 +33,14 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 
     # existing user but not active
     if not user.is_active:
-        core.email_verification.send_message(user.email)
+        send_message(user.email)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="メールアドレスが確認されていません。確認メールを再送信しました。",
         )
     
     # create access token
-    access_token = core.token.create_access_token(
+    access_token = create_access_token(
         data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
     )
     return {"access_token": access_token, "token_type": "bearer"}
@@ -47,14 +48,14 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 @router.get("/auth/verify-email/", tags=["auth"])
 def verify_email(token: str, db: Session = Depends(get_db)):
     # test the email verification token and activate the user account
-    email = core.email_verification.verify_verification_token(token)
+    email = verify_verification_token(token)
     if not email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="無効なトークンまたは有効期限切れです。"
         )
 
-    user = crud.user.get_user_by_email(db, email=email)
+    user = get_user_by_email(db, email=email)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -71,10 +72,10 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     
     return {"message": "メールアドレスの有効化が成功しました"}
 
-@router.post("/auth/refresh/", response_model=schemas.user.UserTokenResponse)
+@router.post("/auth/refresh/", response_model=TokenResponse)
 async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: Session = Depends(get_db)):
     # 1. DBからリフレッシュトークンを検証
-    user = crud.refresh_token.get_user_by_refresh_token(db=db, refresh_token=refresh_token)
+    user = get_user_by_refresh_token(db=db, refresh_token=refresh_token)
 
     if not user:
         raise HTTPException(
@@ -83,7 +84,7 @@ async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: S
         )
 
     # 2. 新しいアクセストークンを生成
-    new_access_token = core.token.create_access_token(data={"sub": user.email})
+    new_access_token = create_access_token(data={"sub": user.email})
 
     # 本来なら、新しいリフレッシュトークンも発行してDBに保存し、古いリフレッシュトークンは無効化するべき
     # ここでは簡略化のため、同じリフレッシュトークンを返す
@@ -94,7 +95,7 @@ async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: S
         "access_token": new_access_token,
         "token_type": "bearer",
         "refresh_token": refresh_token,  # 今回は同じリフレッシュトークンを返す
-        "expires_in": core.token.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60 # 秒単位で返す
     }
 
 """ここからGoogleアカウントとの連携に関するAPIエンドポイント"""
@@ -121,21 +122,21 @@ async def verify_google_token(token: str = Body(..., embed=True), db: Session = 
         name = idinfo.get('name')
 
         # ユーザーをデータベースから取得
-        user = crud.user.get_user_by_google_id(db=db, google_id=google_user_id)
+        user = get_user_by_google_id(db=db, google_id=google_user_id)
 
         # Googleアカウントと連携していない場合
         if not user:
-            user = crud.user.get_user_by_email(db=db, email=email)
+            user = get_user_by_email(db=db, email=email)
             if user:
                 user.credential.google_id = google_user_id
                 db.commit()
             else:
                 # google_idとemailでもユーザーが存在しない場合、有効化して新規作成
-                user = crud.user.create_user(db=db, email=email, google_id=google_user_id)
+                user = crud_create_user(db=db, email=email, google_id=google_user_id)
                 user.is_active = True
                 db.commit()
 
-        access_token = core.token.create_access_token(
+        access_token = create_access_token(
             data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
         )
         
