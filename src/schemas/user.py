@@ -50,3 +50,14 @@ class UserCredentialResponse(BaseModel):
   user_id: uuid.UUID
   hashed_password: str | None = None
   google_id: str | None = None
+
+class UserTokenResponse(BaseModel):
+  model_config = ConfigDict(from_attributes=True)
+  
+  id: uuid.UUID
+  is_active: bool
+  access_token: str
+  expires_in: int
+  refresh_token: str
+  token_type: str = "bearer"
+  
