@@ -5,30 +5,15 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 
 # crudやauthモジュールもテストで利用する可能性がある
-import crud.user, schemas 
-
-
-# クリーンな状態のDBを用意
-# 一時的になコメントアウト
-# Base.metadata.create_all(bind=engine)
-
-# FastAPIアプリの依存関係をテスト用DBに差し替える
-# app.dependency_overrides[get_db] = override_get_db
+import crud.user, schemas, core.email_verification
+from tests.auth_helper import user_create_and_login, setup_mock, GOOGLE_ID
 
 # --- テストケース ---
 
 def test_google_auth_new_user(client, mocker, db_session: Session):
     """正常系: Google認証で新規ユーザーが作成されるケース"""
     # モックの設定: id_token.verify_oauth2_token が返す値を定義
-    mock_user_info = {
-        "sub": "unique_google_id_123",
-        "email": "new.user@example.com",
-        "name": "New User"
-    }
-    mocker.patch(
-        "google.oauth2.id_token.verify_oauth2_token",
-        return_value=mock_user_info
-    )
+    mock_user_info = setup_mock(mocker)
 
     # APIをコール
     response = client.post("/auth/google", json={"token": "dummy_google_token"})
@@ -45,20 +30,11 @@ def test_google_auth_new_user(client, mocker, db_session: Session):
 def test_google_auth_existing_user(client, mocker, db_session: Session):
     """正常系: 既存のGoogle連携済みユーザーがログインするケース"""
     # 1. 事前にDBにユーザーを作成しておく
-    google_id = "already_exists_google_id_456"
+    google_id = GOOGLE_ID
     email = "existing.user@example.com"
     crud.user.create_user(db=db_session, email=email, google_id=google_id)
-    
-    # モックの設定
-    mock_user_info = {
-        "sub": google_id,
-        "email": email,
-        "name": "Existing User"
-    }
-    mocker.patch(
-        "google.oauth2.id_token.verify_oauth2_token",
-        return_value=mock_user_info
-    )
+
+    setup_mock(mocker, email=email, name="Existing User")
 
     # APIをコール
     response = client.post("/auth/google", json={"token": "another_dummy_token"})
@@ -73,25 +49,22 @@ def test_google_auth_existing_user(client, mocker, db_session: Session):
 def test_google_auth_link_to_existing_email(client, mocker, db_session: Session):
     """正常系: 既存のメールアドレスにGoogle IDを連携するケース"""
     # 1. Google IDが空の状態でユーザーを作成
-    email = "email.only@example.com"
-    new_google_id = "newly_linked_google_id_789"
-    user = crud.user.create_user(db=db_session, email=email, password="password", google_id=None)
+    login_data = {"username": "email.only@example.com", "password": "password123"}
+
+    new_google_id = GOOGLE_ID
+    user = crud.user.create_user(db=db_session, email=login_data["username"], password=login_data["password"], google_id=None)
     assert user.credential.google_id is None # 事前確認
 
     # モックの設定
-    mock_user_info = {
-        "sub": new_google_id,
-        "email": email,
-        "name": "Link User"
-    }
-    mocker.patch(
-        "google.oauth2.id_token.verify_oauth2_token",
-        return_value=mock_user_info
-    )
+    setup_mock(mocker, email=login_data["username"])
 
+    jwt_token = user_create_and_login(client, email=login_data["username"], password=login_data["password"])
+
+    # 認証ヘッダーを設定
+    auth_headers = { "Authorization": f"Bearer {jwt_token}" }
     # APIをコール
-    response = client.post("/auth/google", json={"token": "linking_dummy_token"})
-    
+    response = client.patch("/users/me/link-google", json={"token": "linking_dummy_token"}, headers=auth_headers)
+
     # アサーション
     assert response.status_code == 200
     # DBの状態が更新されたことを確認
