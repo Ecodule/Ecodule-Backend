@@ -73,7 +73,7 @@ def link_google_account(
         )
 
     # このGoogleアカウントが、他のユーザーに既に紐付けられていないか確認
-    existing_google_user = crud.get_user_by_google_id(db, google_id=google_user_id)
+    existing_google_user = crud.user.get_user_by_google_id(db, google_id=google_user_id)
     if existing_google_user and existing_google_user.id != current_user.id:
         raise HTTPException(
             status_code=409, # Conflict
@@ -81,7 +81,8 @@ def link_google_account(
         )
     
     # 3. ユーザー情報を更新
-    current_user.google_id = google_user_id
+    current_user.credential.google_id = google_user_id
+
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
