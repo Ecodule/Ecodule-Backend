@@ -10,7 +10,7 @@ TEST_USER_PASSWORD = "testpassword123"
 
 def test_password_hashing(db_session: Session):
     # パスワードのハッシュ化と検証が正しく機能するかをテスト
-    from core.auth import verify_password, get_password_hash
+    from core.security import verify_password, get_password_hash
 
     hashed_password = get_password_hash(TEST_USER_PASSWORD)
 
