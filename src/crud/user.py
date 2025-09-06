@@ -4,12 +4,12 @@ import models.user
 from core.security import get_password_hash, verify_password # 先ほど作成したauth.py
 import schemas.user
 
-def get_user_by_email(db: Session, email: str):
+def get_user_by_email(db: Session, email: str) -> models.user.User | None:
     # get user by email with SQLAlchemy ORM
     # filter is as WHERE clause in SQL
     return db.query(models.user.User).filter(models.user.User.email == email).first()
 
-def get_user_by_google_id(db: Session, google_id: str):
+def get_user_by_google_id(db: Session, google_id: str) -> models.user.User | None:
     # get user by google_id with SQLAlchemy ORM
     return db.query(models.user.User).join(models.user.UserCredential).filter(models.user.UserCredential.google_id == google_id).first()
 
