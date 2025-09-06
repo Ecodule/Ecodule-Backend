@@ -45,6 +45,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     )
     # create refresh token and store it in the database
     refresh_token = create_refresh_token()
+    insert_refresh_token(db=db, user_id=user.id, refresh_token=refresh_token)
     
     return {
         "id": user.id,
@@ -84,9 +85,13 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     return {"message": "メールアドレスの有効化が成功しました"}
 
 @router.post("/auth/refresh/", response_model=TokenResponse)
-async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: Session = Depends(get_db)):
+async def refresh_access_token(
+    refresh_token: str = Body(..., embed=True),
+    email: str = Body(..., embed=True), 
+    db: Session = Depends(get_db)
+):
     # 1. DBからリフレッシュトークンを検証
-    user = get_user_by_refresh_token(db=db, refresh_token=refresh_token)
+    user = get_user_by_refresh_token(db=db, email=email, refresh_token=refresh_token)
 
     if not user:
         raise HTTPException(
@@ -151,7 +156,10 @@ async def verify_google_token(token: str = Body(..., embed=True), db: Session = 
         access_token = create_access_token(
             data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
         )
+
+        # create refresh token and store it in the database
         refresh_token = create_refresh_token()
+        insert_refresh_token(db=db, user_id=user.id, refresh_token=refresh_token)
 
         return {
             "id": user.id,
@@ -159,7 +167,7 @@ async def verify_google_token(token: str = Body(..., embed=True), db: Session = 
             "name": name,
             "access_token": access_token,
             "token_type": "bearer",
-            "refresh_token": refresh_token,  # 今回は同じリフレッシュトークンを返す
+            "refresh_token": refresh_token,
             "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60, # 秒単位で返す
             "message": "Successfully authenticated"
         }
