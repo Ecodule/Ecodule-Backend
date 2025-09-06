@@ -85,10 +85,8 @@ async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: S
     # 2. 新しいアクセストークンを生成
     new_access_token = core.token.create_access_token(data={"sub": user.email})
 
-    # (オプション: トークンローテーションを実装する場合)
-    # 古いリフレッシュトークンをDBで無効化
-    # crud.token.revoke_refresh_token(db=db, token=refresh_token)
-    # 新しいリフレッシュトークンを生成してDBに保存し、レスポンスに含める
+    # 本来なら、新しいリフレッシュトークンも発行してDBに保存し、古いリフレッシュトークンは無効化するべき
+    # ここでは簡略化のため、同じリフレッシュトークンを返す
 
     return {
         "id": user.id,
