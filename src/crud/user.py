@@ -1,14 +1,15 @@
 from sqlalchemy.orm import Session
 
-import models.user, core.auth as auth # 先ほど作成したauth.py
+import models.user
+from core.security import get_password_hash, verify_password # 先ほど作成したauth.py
 import schemas.user
 
-def get_user_by_email(db: Session, email: str):
+def get_user_by_email(db: Session, email: str) -> models.user.User | None:
     # get user by email with SQLAlchemy ORM
     # filter is as WHERE clause in SQL
     return db.query(models.user.User).filter(models.user.User.email == email).first()
 
-def get_user_by_google_id(db: Session, google_id: str):
+def get_user_by_google_id(db: Session, google_id: str) -> models.user.User | None:
     # get user by google_id with SQLAlchemy ORM
     return db.query(models.user.User).join(models.user.UserCredential).filter(models.user.UserCredential.google_id == google_id).first()
 
@@ -24,7 +25,7 @@ def create_user(db: Session, email: str, password: str = None, google_id: str = 
     
     # パスワード認証の場合
     if password:
-        hashed_password = auth.get_password_hash(password)
+        hashed_password = get_password_hash(password)
         # 新しいUserCredentialオブジェクトを作成し、Userに紐付ける
         new_credential = models.user.UserCredential(
             hashed_password=hashed_password,
@@ -57,7 +58,7 @@ def authenticate_user(db: Session, email: str, password: str):
         return None
         
     # パスワードを検証
-    if not auth.verify_password(password, user.credential.hashed_password):
+    if not verify_password(password, user.credential.hashed_password):
         return None
     
     return user

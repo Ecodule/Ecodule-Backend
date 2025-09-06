@@ -17,6 +17,7 @@ class User(Base):
 
     # UserとUserCredentialを1対1で関連付ける
     credential = relationship("UserCredential", back_populates="user", uselist=False)
+    refresh_token = relationship("RefreshToken", back_populates="user", uselist=False)
 
 class UserCredential(Base):
     """ユーザーの認証情報モデル"""
@@ -39,3 +40,16 @@ class UserCredential(Base):
 
     # UserCredentialからUserを逆引きできるように設定
     user = relationship("User", back_populates="credential")
+
+class RefreshToken(Base):
+    """リフレッシュトークンモデル"""
+    __tablename__ = "refresh_tokens"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    hashed_token = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+    is_revoked = Column(Boolean, default=False)
+
+    user = relationship("User", back_populates="refresh_token")
