@@ -11,7 +11,7 @@ def get_user_by_refresh_token(db: Session, email: str, refresh_token: str):
     # get user by refresh token with SQLAlchemy ORM
     user = get_user_by_email(db, email=email)
 
-    if not user:
+    if not user or not user.refresh_token:
         return None
     
     expires_at_aware = user.refresh_token.expires_at.replace(tzinfo=timezone.utc)
