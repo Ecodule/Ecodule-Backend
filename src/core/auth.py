@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -5,12 +6,12 @@ from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv
-load_dotenv()
+import secrets
 
 import crud.user
 from db.session import get_db
 
-import os
+load_dotenv()
 
 # specify the hashing algorithm as bcrypt
 # the deprecated option is set to automatically use the latest algorithm
@@ -28,6 +29,7 @@ def get_password_hash(password: str) -> str:
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+REFRESH_TOKEN_EXPIRE_DAYS = 60
 
 # define the rule to get token from the request
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -39,6 +41,10 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def create_refresh_token():
+    # Generate a secure random string as refresh token
+    return secrets.token_urlsafe(32)
 
 # Decode the JWT token to get the current user
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
