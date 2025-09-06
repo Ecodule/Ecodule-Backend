@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 import models.user, core.auth as auth # 先ほど作成したauth.py
+import schemas.user
 
 def get_user_by_email(db: Session, email: str):
     # get user by email with SQLAlchemy ORM
@@ -11,7 +12,7 @@ def get_user_by_google_id(db: Session, google_id: str):
     # get user by google_id with SQLAlchemy ORM
     return db.query(models.user.User).join(models.user.UserCredential).filter(models.user.UserCredential.google_id == google_id).first()
 
-def create_user(db: Session, email: str, password: str = None, google_id: str = None):
+def create_user(db: Session, email: str, password: str = None, google_id: str = None) -> schemas.user.UserResponse:
     """新規ユーザーを作成する"""
     # ユーザーが既に存在するかチェック
     db_user = get_user_by_email(db, email=email)
