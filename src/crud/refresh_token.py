@@ -12,7 +12,7 @@ def get_user_by_refresh_token(db: Session, refresh_token: str):
         models.user.RefreshToken.is_revoked == False
     ).first()
 
-def create_refresh_token(db: Session, user_id: str) -> schemas.user.UserTokenResponse:
+def insert_refresh_token(db: Session, user_id: str) -> schemas.user.TokenResponse:
     # create a new refresh token and store it in the database
     user = db.query(models.user.User).filter(models.user.User.id == user_id).first()
 

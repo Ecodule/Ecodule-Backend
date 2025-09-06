@@ -6,11 +6,11 @@ from sqlalchemy.orm import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-from core.token import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from core.token import create_access_token, create_refresh_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from core.email_verification import send_message, verify_verification_token
 from crud.user import authenticate_user, get_user_by_email, get_user_by_google_id, create_user as crud_create_user
-from crud.refresh_token import get_user_by_refresh_token
-from schemas.user import TokenResponse
+from crud.refresh_token import get_user_by_refresh_token, insert_refresh_token
+from schemas.user import TokenResponse, GoogleAuthResponse
 from db.session import get_db
 
 load_dotenv()
@@ -43,7 +43,18 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     access_token = create_access_token(
         data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    # create refresh token and store it in the database
+    refresh_token = create_refresh_token()
+    
+    return {
+        "id": user.id,
+        "email": user.email,
+        "is_active": user.is_active,
+        "access_token": access_token,
+        "token_type": "bearer",
+        "refresh_token": refresh_token,
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60 # 秒単位で返す
+    }
 
 @router.get("/auth/verify-email/", tags=["auth"])
 def verify_email(token: str, db: Session = Depends(get_db)):
@@ -91,6 +102,7 @@ async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: S
 
     return {
         "id": user.id,
+        "email": user.email,
         "is_active": user.is_active,
         "access_token": new_access_token,
         "token_type": "bearer",
@@ -101,7 +113,7 @@ async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: S
 """ここからGoogleアカウントとの連携に関するAPIエンドポイント"""
 ANDROID_CLIENT_ID = os.getenv("ANDROID_CLIENT_ID")
 
-@router.post("/auth/google")
+@router.post("/auth/google", response_model=GoogleAuthResponse, tags=["auth"])
 async def verify_google_token(token: str = Body(..., embed=True), db: Session = Depends(get_db)):
     """
     Androidアプリから受け取ったGoogle IDトークンを検証する
@@ -139,8 +151,18 @@ async def verify_google_token(token: str = Body(..., embed=True), db: Session = 
         access_token = create_access_token(
             data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
         )
-        
-        return {"email": email, "name": name, "access_token": access_token, "message": "Successfully authenticated"}
+        refresh_token = create_refresh_token()
+
+        return {
+            "id": user.id,
+            "email": user.email,
+            "name": name,
+            "access_token": access_token,
+            "token_type": "bearer",
+            "refresh_token": refresh_token,  # 今回は同じリフレッシュトークンを返す
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60, # 秒単位で返す
+            "message": "Successfully authenticated"
+        }
 
     except ValueError as e:
         # google authorizationトークンが無効な場合
