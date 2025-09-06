@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-import core.auth as auth
+import core.auth, core.token, core.security
 import core.email_verification
-import crud.user, schemas.user
+import crud.user, crud.refresh_token
+import schemas.user
 from db.session import get_db
 
 load_dotenv()
@@ -18,7 +19,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 router = APIRouter()
 
 # authentication and token generation
-@router.post("/auth/login/", response_model=schemas.user.Token,tags=["auth"])
+@router.post("/auth/login/", response_model=schemas.user.Token, tags=["auth"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # verify user credentials and generate token
     user = crud.user.authenticate_user(db, email=form_data.username, password=form_data.password)
@@ -38,7 +39,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
         )
     
     # create access token
-    access_token = auth.create_access_token(
+    access_token = core.token.create_access_token(
         data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
     )
     return {"access_token": access_token, "token_type": "bearer"}
@@ -69,6 +70,34 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": "メールアドレスの有効化が成功しました"}
+
+@router.post("/auth/refresh/", response_model=schemas.user.UserTokenResponse)
+async def refresh_access_token(refresh_token: str = Body(..., embed=True), db: Session = Depends(get_db)):
+    # 1. DBからリフレッシュトークンを検証
+    user = crud.refresh_token.get_user_by_refresh_token(db=db, refresh_token=refresh_token)
+
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid refresh token",
+        )
+
+    # 2. 新しいアクセストークンを生成
+    new_access_token = core.token.create_access_token(data={"sub": user.email})
+
+    # (オプション: トークンローテーションを実装する場合)
+    # 古いリフレッシュトークンをDBで無効化
+    # crud.token.revoke_refresh_token(db=db, token=refresh_token)
+    # 新しいリフレッシュトークンを生成してDBに保存し、レスポンスに含める
+
+    return {
+        "id": user.id,
+        "is_active": user.is_active,
+        "access_token": new_access_token,
+        "token_type": "bearer",
+        "refresh_token": refresh_token,  # 今回は同じリフレッシュトークンを返す
+        "expires_in": core.token.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    }
 
 """ここからGoogleアカウントとの連携に関するAPIエンドポイント"""
 ANDROID_CLIENT_ID = os.getenv("ANDROID_CLIENT_ID")
@@ -108,7 +137,7 @@ async def verify_google_token(token: str = Body(..., embed=True), db: Session = 
                 user.is_active = True
                 db.commit()
 
-        access_token = auth.create_access_token(
+        access_token = core.token.create_access_token(
             data={"sub": user.email} # sub is the unique identifier in JWT, typically the user ID or email
         )
         
