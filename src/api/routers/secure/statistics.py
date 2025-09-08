@@ -1,7 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+import core.auth as auth
 
 router = APIRouter(
-    tags=["statistics"]          # このルーターのタグを統一
+    tags=["statistics"],          # このルーターのタグを統一
+    dependencies=[Depends(auth.get_current_user)]
 )
 
 @router.get("/users/statistics")
