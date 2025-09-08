@@ -17,6 +17,7 @@ from sqlalchemy import pool
 from alembic import context
 from db.session import Base  # Import the engine from session.py
 from models.user import User # noqa
+from models.schedule import Schedule # noqa
 
 
 
