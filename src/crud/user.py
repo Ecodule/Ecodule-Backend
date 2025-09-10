@@ -4,6 +4,10 @@ import models.user
 from core.security import get_password_hash, verify_password # 先ほど作成したauth.py
 import schemas.user
 
+def get_user_by_id(db: Session, user_id: int) -> models.user.User | None:
+    # get user by id with SQLAlchemy ORM
+    return db.query(models.user.User).filter(models.user.User.id == user_id).first()
+
 def get_user_by_email(db: Session, email: str) -> models.user.User | None:
     # get user by email with SQLAlchemy ORM
     # filter is as WHERE clause in SQL

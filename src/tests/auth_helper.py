@@ -1,5 +1,9 @@
 # src/tests/auth_helper.py
+from sqlalchemy.orm import Session
+
 import core.email_verification
+from schemas.user import UserResponse
+import crud.user
 
 # 一般的な認証で使用するヘルパー関数と定数
 
@@ -15,6 +19,27 @@ def user_create_and_login(client, email: str, password: str) -> str:
     response = client.get(f"/auth/verify-email/?token={token}")
 
     # ログインしてトークンを取得
+    response = client.post("/auth/login", data=login_data)
+    jwt_token = response.json()["access_token"]
+    
+    return jwt_token
+
+def user_create_and_get_user(client, db: Session, email: str, password: str) -> UserResponse:
+    """ユーザーを作成するヘルパー関数"""
+    user_input = {"email": email, "password": password}
+    client.post("/users/create", json=user_input)
+
+    # メールアドレスの検証
+    token = core.email_verification.generate_verification_token(email)
+    client.get(f"/auth/verify-email/?token={token}")
+
+    user_data = crud.user.get_user_by_email(db, email=email)
+
+    return user_data
+
+def user_login_only(client, email: str, password: str) -> str:
+    """既存ユーザーでログインしてJWTトークンを取得するヘルパー関数"""
+    login_data = {"username": email, "password": password}
     response = client.post("/auth/login", data=login_data)
     jwt_token = response.json()["access_token"]
     
