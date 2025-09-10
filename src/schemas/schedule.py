@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 # --- Schedule Schemas ---
 class ScheduleBase(BaseModel):
@@ -23,8 +23,6 @@ class ScheduleUpdate(BaseModel):
 
 
 class ScheduleResponse(ScheduleBase):
-    id: uuid.UUID
+    model_config = ConfigDict(from_attributes=True)
 
-    # ORMモデルのインスタンスからPydanticモデルを生成できるようにする設定
-    class Config:
-        from_attributes = True
+    id: uuid.UUID
