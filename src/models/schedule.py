@@ -30,5 +30,5 @@ class Schedule(Base):
     # category_id = Column(Integer, ForeignKey('categories.category_id'))
     
     # EventからUserとCategoryへの多対1の関係を定義
-    owner = relationship("User", back_populates="events")
+    owner = relationship("User", back_populates="schedules")
     # category = relationship("Category", back_populates="events")

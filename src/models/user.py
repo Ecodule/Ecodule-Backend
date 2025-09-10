@@ -18,6 +18,7 @@ class User(Base):
     # UserとUserCredentialを1対1で関連付ける
     credential = relationship("UserCredential", back_populates="user", uselist=False)
     refresh_token = relationship("RefreshToken", back_populates="user", uselist=False)
+    schedules = relationship("Schedule", back_populates="owner")
 
 class UserCredential(Base):
     """ユーザーの認証情報モデル"""
