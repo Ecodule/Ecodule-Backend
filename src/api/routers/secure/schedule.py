@@ -5,7 +5,7 @@ import uuid
 
 import core.auth as auth
 import crud.schedule
-from crud.user import get_user_by_email
+from crud.user import get_user_by_id
 from schemas.schedule import ScheduleResponse, ScheduleCreate, ScheduleUpdate
 
 from db.session import get_db
@@ -18,7 +18,7 @@ router = APIRouter(
 # スケジュールを作成
 @router.post("/users/{user_id}/schedules", response_model=ScheduleResponse, status_code=status.HTTP_201_CREATED)
 def get_user_schedules(user_id: uuid.UUID, schedule: ScheduleCreate, db: Session = Depends(get_db)):
-    db_user = get_user_by_email()
+    db_user = get_user_by_id(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return crud.schedule.create_schedule(db=db, schedule=schedule, user_id=user_id)
