@@ -6,6 +6,8 @@ from sqlalchemy.pool import StaticPool
 
 from main import app
 from db.session import Base, get_db
+from tests.auth_helper import user_create_and_get_user
+from models.user import User as UserModel
 
 # テスト用のデータベース設定
 
@@ -42,3 +44,17 @@ def client():
   # テスト用のAPIクライアントを提供するfixture
   with TestClient(app) as c:
     yield c
+
+@pytest.fixture(scope="function")
+def test_user(db_session) -> UserModel:
+  """テスト用のユーザーを作成し、DBに保存するfixture"""
+  email = "test@example.com"
+  password = "password123"
+
+  return user_create_and_get_user(client=TestClient(app), db=db_session, email=email, password=password)
+
+@pytest.fixture(scope="function")
+def authorization_header(client, test_user):
+  """認証ヘッダーを提供するfixture"""
+  token = client.post("/auth/login", data={"username": test_user.email, "password": "password123"}).json()["access_token"]
+  return {"Authorization": f"Bearer {token}"}
