@@ -27,8 +27,8 @@ class Schedule(Base):
 
     # 外部キー制約
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
-    # category_id = Column(Integer, ForeignKey('categories.category_id'))
+    category_id = Column(UUID(as_uuid=True), ForeignKey('categories.category_id'), nullable=True)
     
     # EventからUserとCategoryへの多対1の関係を定義
     owner = relationship("User", back_populates="schedules")
-    # category = relationship("Category", back_populates="events")
+    category = relationship("Category", back_populates="schedules")
