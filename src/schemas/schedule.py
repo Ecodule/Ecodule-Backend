@@ -9,6 +9,7 @@ class ScheduleBase(BaseModel):
     start_schedule: datetime | None = None
     end_schedule: datetime | None = None
     description: str | None = None
+    category_id: uuid.UUID | None = Field(default=None, description="カテゴリIDです。指定しない場合はNoneになります。")
 
 class ScheduleCreate(ScheduleBase):
     pass
@@ -19,8 +20,8 @@ class ScheduleUpdate(BaseModel):
     all_day: bool | None = None
     start_schedule: datetime | None = None
     end_schedule: datetime | None = None
-    description: str | None = None                                                                                                                  
-
+    description: str | None = None
+    category_id: uuid.UUID | None = Field(default=None, description="カテゴリIDです。指定しない場合はNoneになります。")                                   
 
 class ScheduleResponse(ScheduleBase):
     model_config = ConfigDict(from_attributes=True)
