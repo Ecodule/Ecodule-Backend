@@ -12,7 +12,7 @@ class Category(Base):
 
     # 1対多のリレーションシップを定義
     # CategoryからEventへの関連
-    Schedules = relationship("Schedule", back_populates="category")
+    schedules = relationship("Schedule", back_populates="category")
     
     # CategoryからEcoActionへの関連
     # eco_actions = relationship("EcoAction", back_populates="category")

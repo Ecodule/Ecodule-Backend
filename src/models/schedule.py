@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from models.user import User # noqa
+from models.category import Category # noqa
 # 以前作成した db/session.py からBaseをインポート
 from db.session import Base
 
