@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -6,6 +7,7 @@ from sqlalchemy.pool import StaticPool
 
 from main import app
 from db.session import Base, get_db
+from models.category import Category
 from tests.auth_helper import user_create_and_get_user
 from models.user import User as UserModel
 
@@ -58,3 +60,24 @@ def authorization_header(client, test_user):
   """認証ヘッダーを提供するfixture"""
   token = client.post("/auth/login", data={"username": test_user.email, "password": "password123"}).json()["access_token"]
   return {"Authorization": f"Bearer {token}"}
+
+@pytest.fixture(scope="function")
+def seed_categories(db_session):
+    """
+    テスト用のカテゴリーデータをDBに投入し、後で削除するfixture
+    """
+    initial_categories = [
+        Category(id=uuid.uuid4(), category_name='ゴミ出し'),
+        Category(id=uuid.uuid4(), category_name='通勤・通学'),
+        Category(id=uuid.uuid4(), category_name='外出'),
+        Category(id=uuid.uuid4(), category_name='買い物'),
+    ]
+    db_session.add_all(initial_categories)
+    db_session.commit()
+    
+    yield initial_categories # テスト実行
+    
+    # テスト終了後にデータをクリーンアップ
+    for category in initial_categories:
+        db_session.delete(category)
+    db_session.commit()

@@ -6,7 +6,7 @@ from schemas.schedule import ScheduleCreate
 from models.schedule import Schedule as ScheduleModel
 from tests.auth_helper import user_login_only
 
-def test_get_user_schedules(client, db_session: Session, test_user, authorization_header):
+def test_get_user_schedules(client, db_session: Session, test_user, authorization_header, seed_categories):
     """特定ユーザーのスケジュール一覧が取得できることを確認"""
     response = client.get(f"/categories", headers=authorization_header)
     assert response.status_code == 200
@@ -14,9 +14,9 @@ def test_get_user_schedules(client, db_session: Session, test_user, authorizatio
 
     assert len(categories) > 0
     
-    first_category = categories[0]["category_id"]
-    second_category = categories[1]["category_id"]
-    third_category = categories[2]["category_id"]
+    first_category = categories[0]["id"]
+    second_category = categories[1]["id"]
+    third_category = categories[2]["id"]
 
     user_id = test_user.id
 
@@ -38,7 +38,11 @@ def test_get_user_schedules(client, db_session: Session, test_user, authorizatio
     data = response.json()
     assert len(data) == 3
     assert data[0]["title"] == "タスク1"
+    print(data)
 
-    assert data[0]["category"]["category_id"] == first_category
-    assert data[1]["category"]["category_id"] == second_category
-    assert data[2]["category"]["category_id"] == third_category
+    assert data[0]["category_id"] == first_category
+    assert data[1]["category_id"] == second_category
+    assert data[2]["category_id"] == third_category
+    assert data[0]["category"]["category_name"] == "ゴミ出し"
+    assert data[1]["category"]["category_name"] == "通勤・通学"
+    assert data[2]["category"]["category_name"] == "外出"
