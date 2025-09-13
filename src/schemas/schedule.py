@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
+from schemas.category import CategoryResponse
 
 # --- Schedule Schemas ---
 class ScheduleBase(BaseModel):
@@ -27,3 +28,5 @@ class ScheduleResponse(ScheduleBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    category: CategoryResponse | None = None
+    
