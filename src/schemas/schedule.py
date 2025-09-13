@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
+from schemas.category import CategoryResponse
 
 # --- Schedule Schemas ---
 class ScheduleBase(BaseModel):
@@ -9,6 +10,7 @@ class ScheduleBase(BaseModel):
     start_schedule: datetime | None = None
     end_schedule: datetime | None = None
     description: str | None = None
+    category_id: uuid.UUID | None = Field(default=None, description="カテゴリIDです。指定しない場合はNoneになります。")
 
 class ScheduleCreate(ScheduleBase):
     pass
@@ -19,10 +21,12 @@ class ScheduleUpdate(BaseModel):
     all_day: bool | None = None
     start_schedule: datetime | None = None
     end_schedule: datetime | None = None
-    description: str | None = None                                                                                                                  
-
+    description: str | None = None
+    category_id: uuid.UUID | None = Field(default=None, description="カテゴリIDです。指定しない場合はNoneになります。")                                   
 
 class ScheduleResponse(ScheduleBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    category: CategoryResponse | None = None
+    

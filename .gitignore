@@ -1,6 +1,7 @@
 credentials.json
 token.json
 user_scripts/*
+test_user.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
