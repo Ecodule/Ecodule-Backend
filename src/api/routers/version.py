@@ -6,4 +6,4 @@ router = APIRouter(
 
 @router.get("/version")
 def get_version():
-    return {"version": "1.0.0"}
+    return {"version": "2025-09-15T22:00:00+09:00"}
