@@ -11,8 +11,8 @@ class Category(Base):
     category_name = Column("category_name", String, nullable=False, unique=True)
 
     # 1対多のリレーションシップを定義
-    # CategoryからEventへの関連
+    # CategoryからScheduleへの関連
     schedules = relationship("Schedule", back_populates="category")
     
     # CategoryからEcoActionへの関連
-    # eco_actions = relationship("EcoAction", back_populates="category")
+    eco_actions = relationship("EcoAction", back_populates="category")
