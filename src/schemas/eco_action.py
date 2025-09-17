@@ -13,4 +13,4 @@ class EcoActionBase(BaseModel):
 # 読み取り・レスポンス用スキーマ：APIからEcoActionの情報を返す際の形式
 class EcoActionResponse(EcoActionBase):
     model_config = ConfigDict(from_attributes=True)
-    id: uuid.UUID
+    eco_action_id: uuid.UUID

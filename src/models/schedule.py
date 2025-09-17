@@ -11,7 +11,7 @@ from db.session import Base
 class Schedule(Base):
     __tablename__ = 'schedules'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, name="schedule_id")
+    schedule_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String)
     all_day = Column(Boolean, default=False)
     start_schedule = Column(DateTime, nullable=True)

@@ -14,9 +14,9 @@ def test_get_user_schedules(client, db_session: Session, test_user, authorizatio
 
     assert len(categories) > 0
     
-    first_category = categories[0]["id"]
-    second_category = categories[1]["id"]
-    third_category = categories[2]["id"]
+    first_category = categories[0]["category_id"]
+    second_category = categories[1]["category_id"]
+    third_category = categories[2]["category_id"]
 
     user_id = test_user.id
 

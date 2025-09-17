@@ -68,7 +68,7 @@ def test_get_single_schedule(client, db_session: Session, test_user, authorizati
     schedule = ScheduleModel(**schedule.model_dump(), user_id=test_user.id)
     db_session.add(schedule)
     db_session.commit()
-    schedule_id = schedule.id
+    schedule_id = schedule.schedule_id
 
     response = client.get(f"/schedules/{schedule_id}", headers=authorization_header)
 
@@ -82,7 +82,7 @@ def test_update_schedule(client, db_session: Session, test_user, authorization_h
 
     db_session.add(schedule)
     db_session.commit()
-    schedule_id = schedule.id
+    schedule_id = schedule.schedule_id
     
     update_data = {"title": "更新後のタイトル"}
 
@@ -98,7 +98,7 @@ def test_delete_schedule(client, db_session: Session, test_user, authorization_h
     
     db_session.add(schedule)
     db_session.commit()
-    schedule_id = schedule.id
+    schedule_id = schedule.schedule_id
 
     # Act: 削除リクエスト
     delete_response = client.delete(f"/schedules/{schedule_id}", headers=authorization_header)

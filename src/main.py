@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from starlette.middleware.sessions import SessionMiddleware
+from dotenv import load_dotenv
+import os
 
 from api.routers import auth, user
 from api.routers.secure import statistics
@@ -6,9 +9,20 @@ from api.routers.secure import user as secure_user
 from api.routers.secure import schedule
 from api.routers.secure import category
 
-from db.admin import setup_admin  # 追加したadmin.pyをimportしてFastAPIアプリに登録
+from db.admin import setup_admin, authentication_backend  # 追加したadmin.pyをimportしてFastAPIアプリに登録
+
+load_dotenv()  # .envファイルの内容を環境変数に読み込む
 
 app = FastAPI()
+
+# app.add_middleware(
+#     SessionMiddleware,
+#     secret_key=os.getenv("ADMIN_KEY")
+# )
+
+# # Googleからの認証コールバックを受け取るルートを追加
+# app.add_route("/admin/auth/google", route=authentication_backend.authenticate, methods=["GET"])
+
 app.include_router(user.router)
 app.include_router(secure_user.router)
 app.include_router(auth.router)

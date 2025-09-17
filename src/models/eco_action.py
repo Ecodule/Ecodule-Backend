@@ -9,7 +9,7 @@ class EcoAction(Base):
     __tablename__ = 'eco_actions'
 
     # ER図のカラム定義に対応
-    id = Column(UUID(as_uuid=True), primary_key=True, name="eco_action_id", default=uuid.uuid4)
+    eco_action_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     content = Column(String, nullable=False)
     money_saved = Column(Float)
     co2_reduction = Column(Float) # 単位はkg-CO2

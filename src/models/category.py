@@ -7,7 +7,7 @@ class Category(Base):
     __tablename__ = 'categories'
 
     # ER図のカラム定義に対応
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, name="category_id")
+    category_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     category_name = Column("category_name", String, nullable=False, unique=True)
 
     # 1対多のリレーションシップを定義

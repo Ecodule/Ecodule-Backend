@@ -27,6 +27,6 @@ class ScheduleUpdate(BaseModel):
 class ScheduleResponse(ScheduleBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
+    schedule_id: uuid.UUID
     category: CategoryResponse | None = None
     
