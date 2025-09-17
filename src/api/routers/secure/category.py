@@ -12,8 +12,8 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)]
 )
 
-@router.get("/categories")
-def read_categories(db: Session = Depends(get_db), response_model=list[CategoryResponse]):
+@router.get("/categories", response_model=list[CategoryResponse])
+def read_categories(db: Session = Depends(get_db)):
     categories = db.query(Category).all()
 
     return categories
