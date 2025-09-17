@@ -6,6 +6,9 @@
 JWT_SECRET_KEY="任意の文字列"
 EMAIL_VERIFICATION_SECRET_KEY="任意の文字列"
 ANDROID_CLIENT_ID="GCPで取得したアンドロイドクライアントID" # 開発環境ではウェブ用のCLIENT_IDを使用
+ADMIN_KEY=""
+ADMIN_CLIENT_ID=""
+ADMIN_CLIENT_SECRET=""
 ```
 
 ```

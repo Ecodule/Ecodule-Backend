@@ -17,3 +17,6 @@ google-auth-httplib2
 google-auth-oauthlib
 google-auth
 faker
+sqladmin
+httpx
+authlib

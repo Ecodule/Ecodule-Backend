@@ -67,10 +67,10 @@ def seed_categories(db_session):
     テスト用のカテゴリーデータをDBに投入し、後で削除するfixture
     """
     initial_categories = [
-        Category(id=uuid.uuid4(), category_name='ゴミ出し'),
-        Category(id=uuid.uuid4(), category_name='通勤・通学'),
-        Category(id=uuid.uuid4(), category_name='外出'),
-        Category(id=uuid.uuid4(), category_name='買い物'),
+        Category(category_id=uuid.uuid4(), category_name='ゴミ出し'),
+        Category(category_id=uuid.uuid4(), category_name='通勤・通学'),
+        Category(category_id=uuid.uuid4(), category_name='外出'),
+        Category(category_id=uuid.uuid4(), category_name='買い物'),
     ]
     db_session.add_all(initial_categories)
     db_session.commit()

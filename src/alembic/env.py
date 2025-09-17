@@ -19,6 +19,7 @@ from db.session import Base  # Import the engine from session.py
 from models.user import User # noqa
 from models.schedule import Schedule # noqa
 from models.category import Category # noqa
+from models.eco_action import EcoAction # noqa
 
 
 

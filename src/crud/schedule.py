@@ -4,7 +4,7 @@ from models.schedule import Schedule as ScheduleModel
 from schemas.schedule import ScheduleCreate, ScheduleUpdate
 
 def get_schedule(db: Session, schedule_id: uuid.UUID):
-    return db.query(ScheduleModel).filter(ScheduleModel.id == schedule_id).first()
+    return db.query(ScheduleModel).filter(ScheduleModel.schedule_id == schedule_id).first()
 
 def get_schedules_by_user(db: Session, user_id: uuid.UUID, skip: int = 0, limit: int = 100):
         return db.query(ScheduleModel).filter(ScheduleModel.user_id == user_id).offset(skip).limit(limit).all()
