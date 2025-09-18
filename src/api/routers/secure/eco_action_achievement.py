@@ -11,11 +11,10 @@ from models.schedule import Schedule
 from models.user import User as UserModel
 
 router = APIRouter(
-    prefix="/achievements",
     tags=["Eco Action Achievements"]
 )
 
-@router.patch("/status", response_model=AchievementResponse)
+@router.patch("/achievements/status", response_model=AchievementResponse)
 def update_achievement_status(
     status_update: AchievementStatusUpdate,
     db: Session = Depends(get_db),

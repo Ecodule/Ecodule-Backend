@@ -9,6 +9,7 @@ from api.routers.secure import user as secure_user
 from api.routers.secure import schedule
 from api.routers.secure import category
 from api.routers.secure import eco_action
+from api.routers.secure import eco_action_achievement
 
 from db.admin import setup_admin, authentication_backend  # 追加したadmin.pyをimportしてFastAPIアプリに登録
 
@@ -31,6 +32,7 @@ app.include_router(statistics.router)
 app.include_router(schedule.router)
 app.include_router(category.router)
 app.include_router(eco_action.router)
+app.include_router(eco_action_achievement.router)
 
 setup_admin(app)
 
