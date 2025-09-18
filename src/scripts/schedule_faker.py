@@ -10,6 +10,7 @@ from models.schedule import Schedule as ScheduleModel
 from models.user import User as UserModel
 from models.user import UserCredential as UserCredentialModel
 from models.user import RefreshToken as RefreshTokenModel
+from models.category import Category as CategoryModel
 from core.security import get_password_hash
 
 import crud.user
@@ -60,6 +61,9 @@ def generate_data(db: Session):
     created_users = db.query(UserModel).all()
     user_id = created_users[0].id
 
+    print(f"カテゴリーを選択中...")
+    first_category = db.query(CategoryModel).first()
+
     print(f"--- スケジュール生成を開始 ---")
     schedules_to_create = []
     for _ in range(SCHEDULES_PER_USER):
@@ -75,7 +79,8 @@ def generate_data(db: Session):
             description=fake.text(max_nb_chars=100),
             all_day=is_all_day,
             start_schedule=start,
-            end_schedule=end
+            end_schedule=end,
+            category_id=first_category.category_id if first_category else None
         ))
 
     db.bulk_save_objects(schedules_to_create)

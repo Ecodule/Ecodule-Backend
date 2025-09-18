@@ -8,19 +8,20 @@ def create_achievement(db: Session, achievement: AchievementCreate):
     
     db_achievement = EcoActionAchievement(
         **achievement.model_dump(),
-        is_completed=False,
-        eco_action_id=achievement.eco_action_id,
-        schedule_id=achievement.schedule_id
+        is_completed=False, # 初期状態は未達成(False)
     )
     
     db.add(db_achievement)
-    db.commit()
-    db.refresh(db_achievement)
     return db_achievement
 
-def get_achievement_by_id(db: Session, achievement_id: uuid.UUID) -> EcoActionAchievement | None:
-    """IDで達成記録を検索"""
-    return db.query(EcoActionAchievement).filter(EcoActionAchievement.id == achievement_id).first()
+def get_achievement_by_schedule_and_action(
+    db: Session, schedule_id: uuid.UUID, eco_action_id: uuid.UUID
+):
+    """スケジュールIDとエコ活動IDで達成記録を検索"""
+    return db.query(EcoActionAchievement).filter(
+        EcoActionAchievement.schedule_id == schedule_id,
+        EcoActionAchievement.eco_action_id == eco_action_id
+    ).first()
 
 def set_completed_status(db: Session, db_achievement: EcoActionAchievement, status: bool):
     """達成記録のis_completedステータスを更新"""

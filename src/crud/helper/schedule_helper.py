@@ -21,7 +21,7 @@ def create_achievements_for_schedule(db: Session, schedule: ScheduleModel) -> No
         create_achievement(
             db=db,
             achievement=AchievementCreate(
-                schedule_id=schedule.id,
-                eco_action_id=eco_action.id
+                schedule_id=schedule.schedule_id,
+                eco_action_id=eco_action.eco_action_id
             )
         )

@@ -18,10 +18,15 @@ def get_schedules_by_user(db: Session, user_id: uuid.UUID, skip: int = 0, limit:
 
 def create_schedule(db: Session, schedule: ScheduleCreate, user_id: uuid.UUID):
     db_schedule = ScheduleModel(**schedule.model_dump(), user_id=user_id) # 辞書型で展開
+    db.add(db_schedule)
+
+    # 1. db.flush()でDBにINSERT文を送り、IDを採番させる
+    #    (トランザクションはまだコミットされない)
+    db.flush()
+    db.refresh(db_schedule)
 
     create_achievements_for_schedule(db, db_schedule)  # スケジュールに基づいて達成記録を作成
 
-    db.add(db_schedule)
     db.commit()
     db.refresh(db_schedule)
     return db_schedule
