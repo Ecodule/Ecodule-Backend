@@ -1,5 +1,6 @@
 # models.py
 
+import uuid
 from sqlalchemy import Column, Integer, Boolean, DateTime, ForeignKey, UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -9,7 +10,7 @@ class EcoActionAchievement(Base):
     __tablename__ = 'eco_action_achievements'
 
     # ER図のカラム定義に対応
-    id = Column("achievement_id", Integer, primary_key=True)
+    id = Column("achievement_id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     achieved_at = Column(DateTime, default=datetime.utcnow)
     is_completed = Column(Boolean, default=True)
 
