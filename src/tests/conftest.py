@@ -8,6 +8,7 @@ from sqlalchemy.pool import StaticPool
 from main import app
 from db.session import Base, get_db
 from models.category import Category
+from models.eco_action import EcoAction as EcoActionModel
 from tests.auth_helper import user_create_and_get_user
 from models.user import User as UserModel
 
@@ -80,4 +81,37 @@ def seed_categories(db_session):
     # テスト終了後にデータをクリーンアップ
     for category in initial_categories:
         db_session.delete(category)
+    db_session.commit()
+
+@pytest.fixture(scope="function")
+def seed_eco_actions(db_session, seed_categories):
+    """
+    テスト用のEcoActionデータを投入するfixture。
+    seed_categories fixtureに依存する。
+    """
+    # seed_categoriesから作成されたカテゴリを取得
+    gomi_category = next((c for c in seed_categories if c.category_name == 'ゴミ出し'), None)
+    idou_category = next((c for c in seed_categories if c.category_name == '通勤・通学'), None)
+
+    initial_eco_actions = []
+    if gomi_category:
+        initial_eco_actions.append(
+            EcoActionModel(category_id=gomi_category.category_id, content="分別をしっかりする", money_saved=10, co2_reduction=0.1)
+        )
+    if idou_category:
+        initial_eco_actions.append(
+            EcoActionModel(category_id=idou_category.category_id, content="自転車で通勤する", money_saved=150, co2_reduction=0.5)
+        )
+        initial_eco_actions.append(
+            EcoActionModel(category_id=idou_category.category_id, content="一駅手前で降りて歩く", money_saved=0, co2_reduction=0.2)
+        )
+
+    db_session.add_all(initial_eco_actions)
+    db_session.commit()
+
+    yield initial_eco_actions
+
+    # テスト終了後にデータをクリーンアップ
+    for action in initial_eco_actions:
+        db_session.delete(action)
     db_session.commit()
