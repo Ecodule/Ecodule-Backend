@@ -14,7 +14,7 @@ router = APIRouter(
     tags=["Eco Action Achievements"]
 )
 
-@router.patch("/achievements/status", response_model=AchievementResponse)
+@router.patch("/achievements/status")
 def update_achievement_status(
     status_update: AchievementStatusUpdate,
     db: Session = Depends(get_db),
@@ -24,7 +24,9 @@ def update_achievement_status(
     指定されたスケジュールとエコ活動に対応する達成記録の完了状態を更新します。
     """
     # 1. スケジュールが存在し、かつログインユーザーのものであるかを確認
-    schedule = db.query(Schedule).filter(Schedule.id == status_update.schedule_id).first()
+    current_schedule_id = status_update.schedule_id
+
+    schedule = db.query(Schedule).filter(Schedule.schedule_id == current_schedule_id).first()
     if not schedule or schedule.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized for this schedule")
 
