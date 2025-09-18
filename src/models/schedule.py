@@ -1,11 +1,9 @@
 import uuid
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, UUID, CheckConstraint
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
-from models.user import User # noqa
-from models.category import Category # noqa
-# 以前作成した db/session.py からBaseをインポート
+from models.category import Category # noqa: F401
+
 from db.session import Base
 
 class Schedule(Base):
@@ -30,7 +28,7 @@ class Schedule(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
     category_id = Column(UUID(as_uuid=True), ForeignKey('categories.category_id'), nullable=True)
     
-    # EventからUserとCategoryへの多対1の関係を定義
+    # ScheduleからUserとCategoryへの多対1の関係を定義
     owner = relationship("User", back_populates="schedules")
     category = relationship("Category", back_populates="schedules")
     eco_action_achievements = relationship("EcoActionAchievement", back_populates="schedule")

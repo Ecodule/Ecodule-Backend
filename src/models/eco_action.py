@@ -3,6 +3,9 @@
 from sqlalchemy import Column, Float, String, ForeignKey, UUID
 from sqlalchemy.orm import relationship
 import uuid
+
+from models.eco_action_achievement import EcoActionAchievement # noqa: F401
+
 from db.session import Base # declarative_base()インスタンス
 
 class EcoAction(Base):
