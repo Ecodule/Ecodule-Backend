@@ -4,8 +4,8 @@ import uuid
 
 # 必要なモジュールをインポート
 from db.session import get_db
-from schemas.eco_action_achievement import AchievementCreate, AchievementResponse
-from crud.eco_action_achievement import create_achievement, get_achievement_by_id, set_completed_status
+from schemas.eco_action_achievement import AchievementStatusUpdate, AchievementResponse
+from crud.eco_action_achievement import get_achievement_by_schedule_and_action, set_completed_status
 from core.auth import get_current_user
 from models.schedule import Schedule
 from models.user import User as UserModel
@@ -15,39 +15,33 @@ router = APIRouter(
     tags=["Eco Action Achievements"]
 )
 
-@router.post("/", response_model=AchievementResponse)
-def create_new_achievement(
-    achievement_in: AchievementCreate,
+@router.patch("/status", response_model=AchievementResponse)
+def update_achievement_status(
+    status_update: AchievementStatusUpdate,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(get_current_user)
+    current_user: UserModel = Depends(get_current_user),
 ):
     """
-    エコ活動を達成した記録を作成します (is_completed = True)
+    指定されたスケジュールとエコ活動に対応する達成記録の完了状態を更新します。
     """
-    # スケジュールが存在し、かつログインユーザーのものであるかを確認
-    schedule = db.query(Schedule).filter(Schedule.id == achievement_in.schedule_id).first()
+    # 1. スケジュールが存在し、かつログインユーザーのものであるかを確認
+    schedule = db.query(Schedule).filter(Schedule.id == status_update.schedule_id).first()
     if not schedule or schedule.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized for this schedule")
-        
-    return create_achievement(db=db, achievement=achievement_in)
 
-
-@router.patch("/{achievement_id}/incomplete", response_model=AchievementResponse)
-def mark_achievement_as_incomplete(
-    achievement_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: UserModel = Depends(get_current_user)
-):
-    """
-    指定された達成記録を取り消します (is_completed = False)
-    """
-    db_achievement = get_achievement_by_id(db, achievement_id=achievement_id)
+    # 2. 対応する達成記録をDBから取得
+    db_achievement = get_achievement_by_schedule_and_action(
+        db,
+        schedule_id=status_update.schedule_id,
+        eco_action_id=status_update.eco_action_id
+    )
     
     if not db_achievement:
-        raise HTTPException(status_code=404, detail="Achievement not found")
+        raise HTTPException(status_code=404, detail="Achievement not found for the given schedule and eco action")
 
-    # 達成記録がログインユーザーのものであるかを、スケジュール経由で確認
-    if db_achievement.schedule.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-
-    return set_completed_status(db=db, db_achievement=db_achievement, status=False)
+    # 3. 取得した達成記録のステータスを更新
+    return set_completed_status(
+        db=db, 
+        db_achievement=db_achievement, 
+        status=status_update.is_completed
+    )

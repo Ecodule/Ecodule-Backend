@@ -18,3 +18,9 @@ class AchievementResponse(AchievementBase):
     id: uuid.UUID
     achieved_at: datetime
     is_completed: bool
+
+# 更新用スキーマ
+class AchievementStatusUpdate(AchievementBase):
+    model_config = ConfigDict(from_attributes=True)
+    
+    is_completed: bool # 更新後の状態をクライアントから受け取る
