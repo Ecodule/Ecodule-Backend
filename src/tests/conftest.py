@@ -57,6 +57,16 @@ def test_user(db_session) -> UserModel:
   return user_create_and_get_user(client=TestClient(app), db=db_session, email=email, password=password)
 
 @pytest.fixture(scope="function")
+def another_user(db_session) -> UserModel:
+    """テスト用の2人目のユーザーを作成し、DBに保存するfixture"""
+    email = "another@example.com"
+    password = "password456"
+    
+    # ユーザーを作成するヘルパー関数を呼び出す
+    # (user_create_and_get_userは既に定義済みと仮定)
+    return user_create_and_get_user(client=TestClient(app), db=db_session, email=email, password=password)
+
+@pytest.fixture(scope="function")
 def authorization_header(client, test_user):
   """認証ヘッダーを提供するfixture"""
   token = client.post("/auth/login", data={"username": test_user.email, "password": "password123"}).json()["access_token"]
