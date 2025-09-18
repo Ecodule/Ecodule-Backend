@@ -20,6 +20,7 @@ from models.user import User # noqa
 from models.schedule import Schedule # noqa
 from models.category import Category # noqa
 from models.eco_action import EcoAction # noqa
+from models.eco_action_achievement import EcoActionAchievement # noqa
 
 
 

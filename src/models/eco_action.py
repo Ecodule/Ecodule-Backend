@@ -20,5 +20,5 @@ class EcoAction(Base):
     # 多対1のリレーションシップ (EcoAction -> Category)
     category = relationship("Category", back_populates="eco_actions")
     
-    # # 1対多のリレーションシップ (EcoAction -> EcoActionAchievement)
-    # achievements = relationship("EcoActionAchievement", back_populates="eco_action")
+    # 1対多のリレーションシップ (EcoAction -> EcoActionAchievement)
+    eco_action_achievements = relationship("EcoActionAchievement", back_populates="eco_action")
