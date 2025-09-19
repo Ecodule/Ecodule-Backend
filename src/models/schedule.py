@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, U
 from sqlalchemy.orm import relationship
 
 from models.category import Category # noqa: F401
+from models.user import User # noqa: F401
 
 from db.session import Base
 

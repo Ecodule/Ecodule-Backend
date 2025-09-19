@@ -6,6 +6,8 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from db.session import Base # declarative_base()インスタンス
 
+from models.schedule import Schedule # noqa: F401
+
 class EcoActionAchievement(Base):
     __tablename__ = 'eco_action_achievements'
 
