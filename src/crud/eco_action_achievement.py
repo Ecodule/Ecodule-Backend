@@ -29,3 +29,11 @@ def set_completed_status(db: Session, db_achievement: EcoActionAchievement, stat
     db.commit()
     db.refresh(db_achievement)
     return db_achievement
+
+def get_achievements_by_schedule(db: Session, schedule_id: uuid.UUID):
+    """
+    指定されたschedule_idに紐づく全ての達成記録を取得します。
+    """
+    return db.query(EcoActionAchievement).filter(
+        EcoActionAchievement.schedule_id == schedule_id
+    ).all()

@@ -13,7 +13,8 @@ from models.user import RefreshToken as RefreshTokenModel
 from models.category import Category as CategoryModel
 from core.security import get_password_hash
 
-import crud.user
+from crud.schedule import create_schedule
+from schemas.schedule import ScheduleCreate
 
 # --- 設定 ---
 NUM_USERS = 20  # 作成するユーザー数
@@ -65,26 +66,28 @@ def generate_data(db: Session):
     first_category = db.query(CategoryModel).first()
 
     print(f"--- スケジュール生成を開始 ---")
-    schedules_to_create = []
     for _ in range(SCHEDULES_PER_USER):
         is_all_day = random.choice([True, False])
         start, end = (None, None)
+
         if not is_all_day:
             start = fake.date_time_between(start_date='-1y', end_date='+1y')
             end = start + timedelta(minutes=random.randint(30, 480))
-        
-        schedules_to_create.append(ScheduleModel(
-            user_id=user_id,
+
+        # ★★★ 変更点1: Pydanticスキーマオブジェクトを作成 ★★★
+        # create_schedule関数が要求するデータ形式に合わせる
+        schedule_data = ScheduleCreate(
             title=fake.sentence(nb_words=4),
             description=fake.text(max_nb_chars=100),
             all_day=is_all_day,
             start_schedule=start,
             end_schedule=end,
             category_id=first_category.category_id if first_category else None
-        ))
+        )
 
-    db.bulk_save_objects(schedules_to_create)
-    db.commit()
+        # ★★★ 変更点2: CRUD関数を直接呼び出し ★★★
+        create_schedule(db=db, schedule=schedule_data, user_id=user_id)
+
     print(f"--- スケジュール生成が完了 ---")
 
     print("ユーザーEmail: " + created_users[0].email)

@@ -5,7 +5,7 @@ import uuid
 # 必要なモジュールをインポート
 from db.session import get_db
 from schemas.eco_action_achievement import AchievementStatusUpdate, AchievementResponse
-from crud.eco_action_achievement import get_achievement_by_schedule_and_action, set_completed_status
+from crud.eco_action_achievement import get_achievement_by_schedule_and_action, set_completed_status, get_achievements_by_schedule
 from core.auth import get_current_user
 from models.schedule import Schedule
 from models.user import User as UserModel
@@ -46,3 +46,19 @@ def update_achievement_status(
         db_achievement=db_achievement, 
         status=status_update.is_completed
     )
+
+@router.get("/achievements/by-schedule/{schedule_id}", response_model=list[AchievementResponse])
+def get_achievements_for_schedule(
+    schedule_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    """
+    指定されたスケジュールIDに紐づく、エコ活動の達成記録一覧を取得します。
+    """
+    # スケジュールが存在し、かつログインユーザーのものであるかを確認
+    schedule = db.query(Schedule).filter(Schedule.schedule_id == schedule_id).first()
+    if not schedule or schedule.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to view these achievements")
+
+    return get_achievements_by_schedule(db=db, schedule_id=schedule_id)

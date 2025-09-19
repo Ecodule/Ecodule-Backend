@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from schemas.category import CategoryResponse
+from schemas.eco_action_achievement import AchievementResponse
 
 # --- Schedule Schemas ---
 class ScheduleBase(BaseModel):
