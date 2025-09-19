@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import uuid
+from datetime import datetime
 
 # 必要なモジュールをインポート
 from db.session import get_db
@@ -39,7 +40,8 @@ def update_achievement_status(
     
     if not db_achievement:
         raise HTTPException(status_code=404, detail="Achievement not found for the given schedule and eco action")
-
+    
+    db_achievement.achieved_at = datetime.utcnow() if status_update.is_completed else None
     # 3. 取得した達成記録のステータスを更新
     return set_completed_status(
         db=db, 
