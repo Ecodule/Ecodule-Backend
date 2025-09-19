@@ -23,3 +23,7 @@ class AchievementStatusUpdate(AchievementBase):
     model_config = ConfigDict(from_attributes=True)
     
     is_completed: bool # 更新後の状態をクライアントから受け取る
+
+class AchievementDelete(AchievementBase):
+    model_config = ConfigDict(from_attributes=True)
+    pass
