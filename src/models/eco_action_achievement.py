@@ -10,7 +10,7 @@ class EcoActionAchievement(Base):
     __tablename__ = 'eco_action_achievements'
 
     # ER図のカラム定義に対応
-    id = Column("achievement_id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    achievement_id = Column("achievement_id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     achieved_at = Column(DateTime, default=datetime.utcnow)
     is_completed = Column(Boolean, default=True)
 
@@ -24,4 +24,4 @@ class EcoActionAchievement(Base):
 
     def __str__(self):
         # ドロップダウンに表示したいカラムを返す
-        return f"Achievement {self.id} - eco_action: {self.eco_action.content}"
+        return f"Achievement {self.achievement_id} - eco_action: {self.eco_action.content}"
