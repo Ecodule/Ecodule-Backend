@@ -15,12 +15,15 @@ class AchievementCreate(AchievementBase):
 class AchievementResponse(AchievementBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
-    achieved_at: datetime
+    achievement_id: uuid.UUID
+    achieved_at: datetime | None = None
     is_completed: bool
 
-# 更新用スキーマ
 class AchievementStatusUpdate(AchievementBase):
     model_config = ConfigDict(from_attributes=True)
     
     is_completed: bool # 更新後の状態をクライアントから受け取る
+
+class AchievementDelete(AchievementBase):
+    model_config = ConfigDict(from_attributes=True)
+    pass

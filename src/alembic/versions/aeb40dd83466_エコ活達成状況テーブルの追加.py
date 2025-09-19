@@ -25,8 +25,8 @@ def upgrade() -> None:
     sa.Column('achievement_id', sa.UUID(), nullable=False),
     sa.Column('achieved_at', sa.DateTime(), nullable=True),
     sa.Column('is_completed', sa.Boolean(), nullable=False),
-    sa.Column('schedule_id', sa.UUID(), nullable=False),
-    sa.Column('eco_action_id', sa.UUID(), nullable=False),
+    sa.Column('schedule_id', sa.UUID(), nullable=True),
+    sa.Column('eco_action_id', sa.UUID(), nullable=True),
     sa.ForeignKeyConstraint(['eco_action_id'], ['eco_actions.eco_action_id'], ),
     sa.ForeignKeyConstraint(['schedule_id'], ['schedules.schedule_id'], ),
     sa.PrimaryKeyConstraint('achievement_id')

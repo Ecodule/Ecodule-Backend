@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 import uuid
 from models.eco_action_achievement import EcoActionAchievement
-from schemas.eco_action_achievement import AchievementCreate
+from schemas.eco_action_achievement import AchievementCreate, AchievementDelete
 
 def create_achievement(db: Session, achievement: AchievementCreate):
     """新しい達成記録を作成 (is_completed=True)"""
@@ -14,9 +14,7 @@ def create_achievement(db: Session, achievement: AchievementCreate):
     db.add(db_achievement)
     return db_achievement
 
-def get_achievement_by_schedule_and_action(
-    db: Session, schedule_id: uuid.UUID, eco_action_id: uuid.UUID
-):
+def get_achievement_by_schedule_and_action(db: Session, schedule_id: uuid.UUID, eco_action_id: uuid.UUID):
     """スケジュールIDとエコ活動IDで達成記録を検索"""
     return db.query(EcoActionAchievement).filter(
         EcoActionAchievement.schedule_id == schedule_id,
@@ -37,3 +35,13 @@ def get_achievements_by_schedule(db: Session, schedule_id: uuid.UUID):
     return db.query(EcoActionAchievement).filter(
         EcoActionAchievement.schedule_id == schedule_id
     ).all()
+
+def delete_achievement(db: Session, achievement: AchievementDelete):
+    """指定された達成記録を削除"""
+    db_achievement = get_achievement_by_schedule_and_action(db, achievement.schedule_id, achievement.eco_action_id)
+
+    # もし達成記録が存在すれば削除
+    if db_achievement:
+        db.delete(db_achievement)
+    
+    return db_achievement

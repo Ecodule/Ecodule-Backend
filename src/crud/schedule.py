@@ -1,13 +1,11 @@
 import uuid
 from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
 
 from models.schedule import Schedule as ScheduleModel
 
-from crud.eco_action_achievement import create_achievement
-from crud.eco_action import get_eco_actions_by_category
-from crud.helper.schedule_helper import create_achievements_for_schedule
+from crud.helper.schedule_helper import create_achievements_for_schedule, update_achievements_by_update_schedule, is_category_valid
 
-from schemas.eco_action_achievement import AchievementCreate
 from schemas.schedule import ScheduleCreate, ScheduleUpdate
 
 def get_schedule(db: Session, schedule_id: uuid.UUID):
@@ -19,6 +17,12 @@ def get_schedules_by_user(db: Session, user_id: uuid.UUID, skip: int = 0, limit:
 def create_schedule(db: Session, schedule: ScheduleCreate, user_id: uuid.UUID):
     db_schedule = ScheduleModel(**schedule.model_dump(), user_id=user_id) # 辞書型で展開
     db.add(db_schedule)
+
+    # カテゴリが有効か確認
+    if schedule.category_id and is_category_valid(db, schedule.category_id) is False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid category_id"
+        )
 
     # 1. db.flush()でDBにINSERT文を送り、IDを採番させる
     #    (トランザクションはまだコミットされない)
@@ -37,7 +41,7 @@ def update_schedule(db: Session, schedule_id: uuid.UUID, schedule_update: Schedu
     if not db_schedule:
         return None
     
-    create_achievements_for_schedule(db, db_schedule)  # スケジュールに基づいて達成記録を作成
+    update_achievements_by_update_schedule(db, db_schedule)  # スケジュールに基づいて達成記録を更新
     
     # exclude_unset=Trueで、リクエストに含まれるフィールドのみを更新対象にする
     update_data = schedule_update.model_dump(exclude_unset=True)

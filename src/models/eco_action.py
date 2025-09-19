@@ -6,7 +6,7 @@ import uuid
 
 from models.eco_action_achievement import EcoActionAchievement # noqa: F401
 
-from db.session import Base # declarative_base()インスタンス
+from db.session import Base
 
 class EcoAction(Base):
     __tablename__ = 'eco_actions'
@@ -29,3 +29,4 @@ class EcoAction(Base):
     def __str__(self):
         # ドロップダウンに表示したいカラムを返す
         return self.content
+    
