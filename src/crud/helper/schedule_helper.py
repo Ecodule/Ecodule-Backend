@@ -44,7 +44,7 @@ def create_achievements_for_schedule(db: Session, schedule: ScheduleModel) -> No
             )
         )
 
-def update_achievements(db: Session, schedule: ScheduleModel) -> None:
+def update_achievements_by_update_schedule(db: Session, schedule: ScheduleModel) -> None:
     """
     スケジュールの変更またはエコ活動の変更に伴い、達成記録を更新する。
     ①古いカテゴリに基づく達成記録を削除し、新しいカテゴリに基づく達成記録を作成する。元の状態を維持する。

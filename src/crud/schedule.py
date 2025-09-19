@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 
 from models.schedule import Schedule as ScheduleModel
 
-from crud.helper.schedule_helper import create_achievements_for_schedule, update_achievements, is_category_valid
+from crud.helper.schedule_helper import create_achievements_for_schedule, update_achievements_by_update_schedule, is_category_valid
 
 from schemas.schedule import ScheduleCreate, ScheduleUpdate
 
@@ -41,7 +41,7 @@ def update_schedule(db: Session, schedule_id: uuid.UUID, schedule_update: Schedu
     if not db_schedule:
         return None
     
-    update_achievements(db, db_schedule)  # スケジュールに基づいて達成記録を更新
+    update_achievements_by_update_schedule(db, db_schedule)  # スケジュールに基づいて達成記録を更新
     
     # exclude_unset=Trueで、リクエストに含まれるフィールドのみを更新対象にする
     update_data = schedule_update.model_dump(exclude_unset=True)
