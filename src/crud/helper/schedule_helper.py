@@ -34,6 +34,10 @@ def create_achievements_for_schedule(db: Session, schedule: ScheduleModel) -> No
     # カテゴリに紐づくエコ活動を取得
     eco_actions = get_eco_actions_by_category(db, schedule.category_id)
 
+    # もし、エコ活動が存在しない場合、何もしない
+    if not eco_actions:
+        return 
+
     # 各エコ活動に対応する達成記録を作成
     for eco_action in eco_actions:
         create_achievement(
@@ -62,15 +66,24 @@ def update_achievements_by_update_schedule(db: Session, schedule: ScheduleModel)
     previous_achievements = db.query(AchievementModel).filter(
         AchievementModel.schedule_id == schedule.schedule_id
     ).all()
+    
     # 既存のエコ活動を取得
-    previous_eco_actions: list[EcoAction] = [achievement.eco_action for achievement in previous_achievements]
+    # Noneは除外
+    previous_eco_actions: list[EcoAction] = [
+        achievement.eco_action for achievement in previous_achievements if achievement.eco_action is not None
+    ]
 
     # カテゴリに紐づくエコ活動を取得
     eco_actions: list[EcoAction] = get_eco_actions_by_category(db, schedule.category_id)
 
+    # もし、エコ活動が存在しない場合、終了
+    if not (previous_eco_actions or eco_actions):
+        return
+
     # 既存のエコ活動と新しいエコ活動を比較して削除と追加を決定
     for eco_action in eco_actions:
         if eco_action not in previous_eco_actions:
+            print(f"Adding new eco action: {eco_action}")
             # 新しいエコ活動に対する達成記録を作成
             create_achievement(
                 db=db,
@@ -83,6 +96,7 @@ def update_achievements_by_update_schedule(db: Session, schedule: ScheduleModel)
     for previous_eco_action in previous_eco_actions:
         if previous_eco_action not in eco_actions:
             # 削除されたエコ活動に対する達成記録を削除
+            print(f"Removing old eco action: {previous_eco_action}")
             delete_achievement(
                 db=db,
                 achievement=AchievementDelete(
