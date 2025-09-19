@@ -11,6 +11,8 @@ from api.routers.secure import category
 from api.routers.secure import eco_action
 from api.routers.secure import eco_action_achievement
 
+import core.events  # 追加：イベントリスナーをインポートして登録
+
 from db.admin import setup_admin, authentication_backend  # 追加したadmin.pyをimportしてFastAPIアプリに登録
 
 load_dotenv()  # .envファイルの内容を環境変数に読み込む
