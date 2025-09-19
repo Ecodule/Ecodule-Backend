@@ -16,7 +16,7 @@ class AchievementResponse(AchievementBase):
     model_config = ConfigDict(from_attributes=True)
 
     achievement_id: uuid.UUID
-    achieved_at: datetime | None = None
+    # achieved_at: datetime | None = None
     is_completed: bool
 
 class AchievementStatusUpdate(AchievementBase):
