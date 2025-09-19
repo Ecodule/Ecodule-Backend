@@ -30,4 +30,5 @@ class ScheduleResponse(ScheduleBase):
 
     schedule_id: uuid.UUID
     category: CategoryResponse | None = None
+    eco_action_achievements: list[AchievementResponse] = []
     
