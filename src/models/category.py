@@ -19,3 +19,7 @@ class Category(Base):
     
     # CategoryからEcoActionへの関連
     eco_actions = relationship("EcoAction", back_populates="category")
+
+    def __str__(self):
+        # ドロップダウンに表示したいカラムを返す
+        return self.category_name
