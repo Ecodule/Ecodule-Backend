@@ -21,3 +21,7 @@ class EcoActionAchievement(Base):
     # 多対1のリレーションシップ
     schedule = relationship("Schedule", back_populates="eco_action_achievements")
     eco_action = relationship("EcoAction", back_populates="eco_action_achievements")
+
+    def __str__(self):
+        # ドロップダウンに表示したいカラムを返す
+        return f"Achievement {self.id} - eco_action: {self.eco_action.content}"

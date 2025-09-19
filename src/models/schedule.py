@@ -32,3 +32,7 @@ class Schedule(Base):
     owner = relationship("User", back_populates="schedules")
     category = relationship("Category", back_populates="schedules")
     eco_action_achievements = relationship("EcoActionAchievement", back_populates="schedule")
+
+    def __str__(self):
+        # ドロップダウンに表示したいカラムを返す
+        return self.title

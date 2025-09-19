@@ -25,3 +25,7 @@ class EcoAction(Base):
     
     # 1対多のリレーションシップ (EcoAction -> EcoActionAchievement)
     eco_action_achievements = relationship("EcoActionAchievement", back_populates="eco_action")
+
+    def __str__(self):
+        # ドロップダウンに表示したいカラムを返す
+        return self.content
