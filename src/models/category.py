@@ -1,6 +1,9 @@
 import uuid
 from sqlalchemy import Column, Integer, String, UUID
 from sqlalchemy.orm import relationship
+
+from models.eco_action import EcoAction # noqa: F401
+
 from db.session import Base # declarative_base()インスタンス
 
 class Category(Base):
