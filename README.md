@@ -25,6 +25,13 @@ Ecodule-Backend\src> python -m pip install google-api-python-client google-auth-
 Ecodule-Backend\src> python -m core.email_verification
 ```
 
+```
+# 全体統計集計の実行（予定）
+
+# サーバーのcron設定例 (毎日深夜3時に実行)
+0 3 * * * /usr/bin/python /path/to/your_project/scripts/calculate_overall_stats.py
+```
+
 ## テスト実行
 ```
 docker-compose up -d --build
