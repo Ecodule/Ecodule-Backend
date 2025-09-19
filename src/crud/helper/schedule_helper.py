@@ -5,11 +5,10 @@ from models.eco_action_achievement import EcoActionAchievement as AchievementMod
 from models.category import Category  # 遅延インポートで循環参照を回避
 from models.eco_action import EcoAction
 
-from schemas.eco_action_achievement import AchievementCreate
+from schemas.eco_action_achievement import AchievementCreate, AchievementDelete
 
 from crud.eco_action import get_eco_actions_by_category
-from crud.eco_action_achievement import create_achievement # 修正版のcreate_achievement
-
+from crud.eco_action_achievement import create_achievement, delete_achievement
 def is_category_valid(db: Session, category_id) -> bool:
     """
     指定されたカテゴリIDが有効かどうかを確認する。
@@ -81,11 +80,13 @@ def update_achievements(db: Session, schedule: ScheduleModel) -> None:
                 )
             )
 
-    # エコ活動が削除されたら達成状況も削除されるか確認してくる
-    # for previous_eco_action in previous_eco_actions:
-    #     if previous_eco_action not in eco_actions:
-    #         # 削除されたエコ活動に対する達成記録を削除
-    #         delete_achievement(
-    #             db=db,
-    #             achievement=previous_eco_action
-    #         )
+    for previous_eco_action in previous_eco_actions:
+        if previous_eco_action not in eco_actions:
+            # 削除されたエコ活動に対する達成記録を削除
+            delete_achievement(
+                db=db,
+                achievement=AchievementDelete(
+                    schedule_id=schedule.schedule_id,
+                    eco_action_id=previous_eco_action.eco_action_id
+                )
+            )
