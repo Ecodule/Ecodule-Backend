@@ -33,8 +33,28 @@ def test_eco_action_update_triggers_achievement_reconciliation(
 
     # スケジュールを2つ作成（それぞれ異なるカテゴリに属する）
     # create_scheduleを呼び出すと、紐づく達成記録も自動生成される
-    schedule_A = create_schedule(db_session, ScheduleCreate(title="通勤プラン", category_id=category_A.category_id), user_id=test_user.id)
-    schedule_B = create_schedule(db_session, ScheduleCreate(title="買い物プラン", category_id=category_B.category_id), user_id=test_user.id)
+    schedule_A = create_schedule(
+        db_session,
+        ScheduleCreate(
+            title="タスク1",
+            all_day=False,
+            start_schedule="2025-11-01T10:00:00",
+            end_schedule="2025-11-01T11:00:00",
+            category_id=category_A.category_id
+        ),
+        user_id=test_user.id,
+    )
+    schedule_B = create_schedule(
+        db_session, 
+        ScheduleCreate(
+            title="タスク1",
+            all_day=False,
+            start_schedule="2025-11-01T10:00:00",
+            end_schedule="2025-11-01T11:00:00",
+            category_id=category_B.category_id
+        ),
+        user_id=test_user.id
+    )
 
     # --- 初期状態の確認 ---
     # Schedule A には2つの達成記録 (1A, 2A) があるはず

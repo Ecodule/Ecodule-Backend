@@ -7,6 +7,8 @@ from models.schedule import Schedule as ScheduleModel
 from models.user import User as UserModel
 from models.eco_action_achievement import EcoActionAchievement
 
+from schemas.schedule import ScheduleCreate
+
 def test_update_achievement_status_success(
     client, db_session: Session, test_user: UserModel, authorization_header: dict,
     seed_categories: list, seed_eco_actions: list
@@ -22,13 +24,17 @@ def test_update_achievement_status_success(
         title="Test Schedule",
         user_id=test_user.id,
         category_id=target_category.category_id,
-        start_schedule=datetime.fromisoformat("2025-10-01T10:00:00")
+        all_day=True,
+        start_schedule=datetime.fromisoformat("2025-10-01T10:00:00"),
+        end_schedule=datetime.fromisoformat("2025-10-01T11:00:00")
     )
+
     db_session.add(schedule)
     db_session.commit()
 
     # 2. テスト対象の達成記録を作成 (is_completed=Falseで作成)
     achievement = EcoActionAchievement(
+        # ahieved_at=datetime.fromisoformat("2025-10-01T10:00:00"),
         schedule_id=schedule.schedule_id,
         eco_action_id=target_eco_action.eco_action_id,
         is_completed=False
@@ -91,7 +97,12 @@ def test_update_achievement_status_forbidden(
     target_eco_action = next(a for a in seed_eco_actions if a.category_id == target_category.category_id)
 
     schedule_of_another_user = ScheduleModel(
-        title="Another User's Schedule", user_id=another_user.id, category_id=target_category.category_id
+        title="Another User's Schedule",
+        all_day=False,
+        start_schedule=datetime.fromisoformat("2025-10-01T10:00:00"),
+        end_schedule=datetime.fromisoformat("2025-10-01T11:00:00"),
+        user_id=another_user.id,
+        category_id=target_category.category_id
     )
     db_session.add(schedule_of_another_user)
     db_session.commit()

@@ -44,13 +44,33 @@ def test_get_user_schedules(client, db_session: Session, test_user, authorizatio
     """特定ユーザーのスケジュール一覧が取得できることを確認"""
     user_id = test_user.id
     # Arrange: テストデータを3件作成
-    schedule1 = ScheduleCreate(title="タスク1", user_id=user_id, all_day=True)
+    schedule1 = ScheduleCreate(
+        title="タスク1",
+        all_day=False,
+        start_schedule="2025-11-01T10:00:00",
+        end_schedule="2025-11-01T11:00:00",
+    )
     schedule1 = ScheduleModel(**schedule1.model_dump(), user_id=user_id)
-    schedule2 = ScheduleCreate(title="タスク2", user_id=user_id, all_day=True)
+
+    schedule2 = ScheduleCreate(
+        title="タスク2",
+        all_day=False,
+        start_schedule="2025-11-01T10:00:00",
+        end_schedule="2025-11-01T11:00:00",
+    )
     schedule2 = ScheduleModel(**schedule2.model_dump(), user_id=user_id)
-    schedule3 = ScheduleCreate(title="タスク3", user_id=user_id, all_day=True)
+
+    schedule3 = ScheduleCreate(
+        title="タスク3",
+        all_day=False,
+        start_schedule="2025-11-01T10:00:00",
+        end_schedule="2025-11-01T11:00:00",
+    )
     schedule3 = ScheduleModel(**schedule3.model_dump(), user_id=user_id)
-    db_session.add_all([schedule1, schedule2, schedule3])
+
+    db_session.add(schedule1)
+    db_session.add(schedule2)
+    db_session.add(schedule3)
     db_session.commit()
 
     # Act
@@ -64,8 +84,14 @@ def test_get_user_schedules(client, db_session: Session, test_user, authorizatio
 
 def test_get_single_schedule(client, db_session: Session, test_user, authorization_header):
     """単一のスケジュールがIDで取得できることを確認"""
-    schedule = ScheduleCreate(title="取得テスト", user_id=test_user.id, all_day=True)
+    schedule = ScheduleCreate(
+        title="取得テスト",
+        all_day=False,
+        start_schedule="2025-11-01T10:00:00",
+        end_schedule="2025-11-01T11:00:00",
+    )
     schedule = ScheduleModel(**schedule.model_dump(), user_id=test_user.id)
+
     db_session.add(schedule)
     db_session.commit()
     schedule_id = schedule.schedule_id
@@ -77,7 +103,13 @@ def test_get_single_schedule(client, db_session: Session, test_user, authorizati
 
 def test_update_schedule(client, db_session: Session, test_user, authorization_header):
     """スケジュールの更新ができることを確認"""
-    schedule = ScheduleCreate(title="更新前のタイトル", user_id=test_user.id, all_day=True)
+    schedule = ScheduleCreate(
+        title="更新前のタイトル",
+        all_day=False,
+        start_schedule="2025-11-01T10:00:00",
+        end_schedule="2025-11-01T11:00:00",
+    )
+
     schedule = ScheduleModel(**schedule.model_dump(), user_id=test_user.id)
 
     db_session.add(schedule)
@@ -93,7 +125,13 @@ def test_update_schedule(client, db_session: Session, test_user, authorization_h
 
 def test_delete_schedule(client, db_session: Session, test_user, authorization_header):
     """スケジュールの削除ができることを確認"""
-    schedule = ScheduleCreate(title="削除するスケジュール", user_id=test_user.id, all_day=True)
+    schedule = ScheduleCreate(
+        title="削除対象のミーティング",
+        all_day=False,
+        start_schedule="2025-11-01T10:00:00",
+        end_schedule="2025-11-01T11:00:00",
+    )
+
     schedule = ScheduleModel(**schedule.model_dump(), user_id=test_user.id)
     
     db_session.add(schedule)
