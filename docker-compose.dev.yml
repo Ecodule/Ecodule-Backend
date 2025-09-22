@@ -1,7 +1,9 @@
 services:
   # Python APIサーバーの定義（前回作成したもの）
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
     ports:
       - "8000:80"
     volumes:

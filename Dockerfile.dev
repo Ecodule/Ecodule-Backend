@@ -3,16 +3,14 @@
 # 1. ベースとなる公式Pythonイメージを指定
 FROM python:3.10-slim
 
-# 2. コンテナ内での作業ディレクトリを設定
-WORKDIR /app
+# 3. 依存ライブラリを先にインストール
+#    (ソースコードより先にコピーすることで、ビルドキャッシュが効きやすくなる)
+COPY ./requirements.txt ./requirements.txt
+COPY ./requirements-dev.txt ./requirements-dev.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
-# 3. 依存ライブラリの定義ファイルをコンテナにコピー
-COPY ./requirements.txt /app/requirements.txt
-
-# 4. 依存ライブラリをインストール
-RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
-
-# 5. アプリケーションのソースコードをコンテナにコピー
+# 3. アプリケーションのソースコードをコンテナにコピー
 COPY . /app
 
 WORKDIR /app/src
