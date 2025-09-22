@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from schemas.category import CategoryResponse
 from schemas.eco_action_achievement import AchievementResponse
 
@@ -31,4 +31,20 @@ class ScheduleResponse(ScheduleBase):
     schedule_id: uuid.UUID
     category: CategoryResponse | None = None
     eco_action_achievements: list[AchievementResponse] | None = None
+
+    # start_scheduleから自動的に計算されるフィールド
+    @computed_field
+    @property
+    def month(self) -> int | None:
+        return self.start_schedule.month if self.start_schedule else None
+
+    @computed_field
+    @property
+    def day(self) -> int | None:
+        return self.start_schedule.day if self.start_schedule else None
+    
+    @computed_field
+    @property
+    def startHour(self) -> int | None:
+        return self.start_schedule.hour if self.start_schedule else None
     

@@ -12,18 +12,10 @@ class Schedule(Base):
 
     schedule_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String)
-    all_day = Column(Boolean, default=False)
-    start_schedule = Column(DateTime, nullable=True)
-    end_schedule = Column(DateTime, nullable=True)
+    all_day = Column(Boolean, default=False, nullable=False) # 終日かどうか
+    start_schedule = Column(DateTime, nullable=False)
+    end_schedule = Column(DateTime, nullable=False)
     description = Column(String, nullable=True) # 説明は空でも良い場合
-
-    # all_dayかstart & endどちらかが保存されている必要がある
-    __table_args__ = (
-        CheckConstraint(
-            'all_day IS NOT NULL OR (start_schedule IS NOT NULL AND end_schedule IS NOT NULL)',
-            name="ck_schedule_time_constraint"
-        ),
-    )
 
     # 外部キー制約
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)

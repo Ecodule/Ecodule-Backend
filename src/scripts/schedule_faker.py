@@ -70,9 +70,8 @@ def generate_data(db: Session):
         is_all_day = random.choice([True, False])
         start, end = (None, None)
 
-        if not is_all_day:
-            start = fake.date_time_between(start_date='-1y', end_date='+1y')
-            end = start + timedelta(minutes=random.randint(30, 480))
+        start = fake.date_time_between(start_date='-1y', end_date='+1y')
+        end = start + timedelta(minutes=random.randint(30, 480))
 
         # ★★★ 変更点1: Pydanticスキーマオブジェクトを作成 ★★★
         # create_schedule関数が要求するデータ形式に合わせる
