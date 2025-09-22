@@ -1,0 +1,30 @@
+# Dockerfile
+
+# 1. ベースとなる公式Pythonイメージを指定
+FROM python:3.10-slim as builder
+
+# 3. 依存ライブラリを先にインストール
+#    (ソースコードより先にコピーすることで、ビルドキャッシュが効きやすくなる)
+COPY ./requirements.txt ./requirements.txt
+COPY ./requirements-dev.txt ./requirements-dev.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+# 3. アプリケーションのソースコードをコンテナにコピー
+COPY . /app
+
+WORKDIR /app
+
+# ビルドステージからインストール済みのライブラリのみをコピー
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+
+WORKDIR /app/src
+
+# 実行権限を付与
+RUN chmod +x /app/entrypoint.sh
+# コンテナ起動時にこのスクリプトを実行するように設定
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# GunicornでUvicornワーカーを起動するコマンド
+# PORT環境変数はプラットフォームが自動で設定するか、docker-composeで設定します
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
