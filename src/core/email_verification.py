@@ -1,7 +1,9 @@
 from config import settings
 import os.path
+import os
 import base64
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -15,6 +17,7 @@ from itsdangerous import URLSafeTimedSerializer
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 SENDER_EMAIL = "ecodule@gmail.com" # あなたのGmailアドレス
 SENDER_NAME = "Ecodule"
+load_dotenv()
 
 # ----------------
 
@@ -83,7 +86,7 @@ def send_message(user_email: str):
     verification_token = generate_verification_token(user_email)
 
     # 確認用URLを生成、あとで環境変数にする
-    verification_url = f"http://localhost:8000/auth/verify-email/?token={verification_token}"
+    verification_url = f"{os.getenv('ECODULE_URL')}/auth/verify-email/?token={verification_token}"
     message = create_message(SENDER_EMAIL, user_email, subject, verification_url)
 
     try:
