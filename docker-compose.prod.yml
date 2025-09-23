@@ -25,6 +25,11 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"  # PCの5432ポートに接続
+    command: postgres -c log_destination=stderr -c log_statement=all -c log_connections=on -c log_disconnections=on
+    logging:
+      options:
+        max-size: "10k"
+        max-file: "5"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
       
