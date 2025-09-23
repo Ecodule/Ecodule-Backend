@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from dotenv import load_dotenv
 import os
 
@@ -18,6 +19,11 @@ from db.admin import setup_admin, authentication_backend  # 追加したadmin.py
 load_dotenv()  # .envファイルの内容を環境変数に読み込む
 
 app = FastAPI()
+
+# Nginxのようなリバースプロキシを信頼し、
+# X-Forwarded-Protoヘッダーなどを解釈するように設定します。
+# trusted_hosts="*"は、どのプロキシからでもヘッダーを信頼することを意味します。
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # app.add_middleware(
 #     SessionMiddleware,
