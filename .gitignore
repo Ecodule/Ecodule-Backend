@@ -3,6 +3,7 @@ token.json
 user_scripts/*
 test_user.txt
 nginx/*
+certbot/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
