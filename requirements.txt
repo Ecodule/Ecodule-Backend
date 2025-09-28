@@ -20,3 +20,4 @@ faker
 sqladmin
 httpx
 authlib
+jinja2
