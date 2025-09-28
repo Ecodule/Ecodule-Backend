@@ -1,11 +1,12 @@
 import os
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
+from main import templates 
 from core.token import create_access_token, create_refresh_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from core.email_verification import send_message, verify_verification_token
 from crud.user import authenticate_user, get_user_by_email, get_user_by_google_id, create_user as crud_create_user
@@ -58,31 +59,41 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     }
 
 @router.get("/auth/verify-email/", tags=["auth"])
-def verify_email(token: str, db: Session = Depends(get_db)):
+def verify_email(request: Request, token: str, db: Session = Depends(get_db)):
     # test the email verification token and activate the user account
     email = verify_verification_token(token)
     if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="無効なトークンまたは有効期限切れです。"
-        )
+        return templates.TemplateResponse("verification_status.html", {
+            "request": request,
+            "status_message": "認証エラー",
+            "detail_message": "無効なトークンまたは有効期限切れです。再度お試しください。"
+        }, status_code=400)
 
     user = get_user_by_email(db, email=email)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="ユーザーが見つかりません"
-        )
+        return templates.TemplateResponse("verification_status.html", {
+            "request": request,
+            "status_message": "認証エラー",
+            "detail_message": "ユーザーが見つかりませんでした。"
+        }, status_code=404)
     
     if user.is_active:
-        return {"message": "このアカウントは既に有効化されています"}
+        return templates.TemplateResponse("verification_status.html", {
+            "request": request,
+            "status_message": "認証済み",
+            "detail_message": "このアカウントは既に有効化されています。アプリのログインページからログインしてください。"
+        })
     
     # ユーザーを有効化
     user.is_active = True
     db.add(user)
     db.commit()
-    
-    return {"message": "メールアドレスの有効化が成功しました"}
+
+    return templates.TemplateResponse("verification_status.html", {
+        "request": request,
+        "status_message": "認証に成功しました！",
+        "detail_message": "メールアドレスの有効化が完了しました。アプリのログインページからログインしてください。"
+    })
 
 @router.post("/auth/refresh/", response_model=TokenResponse)
 async def refresh_access_token(

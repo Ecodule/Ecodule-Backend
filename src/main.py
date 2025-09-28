@@ -1,8 +1,13 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from dotenv import load_dotenv
 import os
+
+# "templates"ディレクトリをテンプレートとして設定
+templates = Jinja2Templates(directory="templates/html")
 
 from api.routers import auth, user
 from api.routers.secure import statistics
@@ -19,6 +24,9 @@ from db.admin import setup_admin, authentication_backend  # 追加したadmin.py
 load_dotenv()  # .envファイルの内容を環境変数に読み込む
 
 app = FastAPI()
+
+# "static"ディレクトリを "/static" パスでマウント
+app.mount("/static", StaticFiles(directory="templates"), name="static")
 
 # Nginxのようなリバースプロキシを信頼し、
 # X-Forwarded-Protoヘッダーなどを解釈するように設定します。
