@@ -9,6 +9,7 @@ from main import app
 from db.session import Base, get_db
 from models.category import Category
 from models.eco_action import EcoAction as EcoActionModel
+from models.overall_statistics import OverallStats as OverallStatsModel
 from tests.auth_helper import user_create_and_get_user
 from models.user import User as UserModel
 
@@ -124,4 +125,22 @@ def seed_eco_actions(db_session, seed_categories):
     # テスト終了後にデータをクリーンアップ
     for action in initial_eco_actions:
         db_session.delete(action)
+    db_session.commit()
+
+@pytest.fixture(scope="function")
+def seed_overall_statistics(db_session):
+    """
+    テスト用のOverallStatisticsデータをDBに投入し、後で削除するfixture
+    """
+    overall_stats = OverallStatsModel(
+        total_money_saved=5000.0,
+        total_co2_reduction=75.0
+    )
+    db_session.add(overall_stats)
+    db_session.commit()
+    
+    yield overall_stats # テスト実行
+    
+    # テスト終了後にデータをクリーンアップ
+    db_session.delete(overall_stats)
     db_session.commit()
