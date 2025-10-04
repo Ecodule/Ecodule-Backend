@@ -19,7 +19,7 @@ def read_user_statistics(db: Session, user_id: uuid.UUID):
         .first()
     )
 
-    if (not user_statistics):
+    if not user_statistics:
         return None
     
     return user_statistics
@@ -54,6 +54,8 @@ def create_user_statistics(db: Session, user_id: uuid.UUID):
     db.commit()
     db.refresh(new_statistics)
 
+    print(f"Created new statistics for user_id: {new_statistics.total_co2_reduction}")
+
     return new_statistics
 
 """
@@ -84,7 +86,7 @@ def update_overall_statistics(db: Session, money_saved: float, co2_reduction: fl
     """
     全ユーザーの統計情報を更新する
     """
-    overall_statistics = db.query(UserStatisticsModel).first()
+    overall_statistics = db.query(OverallStatisticsModel).first()
 
     if not overall_statistics:
         return None
