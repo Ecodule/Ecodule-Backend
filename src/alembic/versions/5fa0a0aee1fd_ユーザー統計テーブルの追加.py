@@ -1,8 +1,8 @@
 """ユーザー統計テーブルの追加
 
-Revision ID: 4a701dda4d61
+Revision ID: 5fa0a0aee1fd
 Revises: 04103131b154
-Create Date: 2025-10-04 06:17:22.477315
+Create Date: 2025-10-04 07:40:46.097352
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '4a701dda4d61'
+revision: str = '5fa0a0aee1fd'
 down_revision: Union[str, Sequence[str], None] = '04103131b154'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,6 +26,7 @@ def upgrade() -> None:
     sa.Column('total_money_saved', sa.Float(), nullable=True),
     sa.Column('total_co2_reduction', sa.Float(), nullable=True),
     sa.Column('user_id', sa.UUID(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
