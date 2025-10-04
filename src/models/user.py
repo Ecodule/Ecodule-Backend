@@ -19,6 +19,7 @@ class User(Base):
     credential = relationship("UserCredential", back_populates="user", uselist=False)
     refresh_token = relationship("RefreshToken", back_populates="user", uselist=False)
     schedules = relationship("Schedule", back_populates="owner")
+    statistics = relationship("UserStatistics", back_populates="user", uselist=False)
 
 class UserCredential(Base):
     """ユーザーの認証情報モデル"""

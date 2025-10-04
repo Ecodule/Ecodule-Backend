@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import UUID, Column, Float
+from sqlalchemy import UUID, Column, Float, ForeignKey
 from db.session import Base
 
 from sqlalchemy.orm import relationship
@@ -10,6 +10,6 @@ class UserStatistics(Base):
     total_money_saved = Column(Float)
     total_co2_reduction = Column(Float)
 
-    user_id = Column(UUID(as_uuid=True), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
 
     user = relationship("User", back_populates="statistics")
