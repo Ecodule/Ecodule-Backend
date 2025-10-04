@@ -22,6 +22,7 @@ from models.category import Category # noqa
 from models.eco_action import EcoAction # noqa
 from models.eco_action_achievement import EcoActionAchievement # noqa
 from models.overall_statistics import OverallStats # noqa
+from models.user_statistics import UserStatistics # noqa
 
 
 
